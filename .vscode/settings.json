@@ -1,0 +1,6 @@
+{
+	"python.pythonPath": ".venv/bin/python",
+	"mypy.targets": [
+		"py_logging_discord"
+	]
+}
