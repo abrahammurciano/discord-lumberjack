@@ -1,6 +1,12 @@
 {
-	"python.pythonPath": ".venv/bin/python",
+	"python.pythonPath": "/home/abraham/Documents/discord_lumberjack/.venv/bin/python",
 	"mypy.targets": [
-		"py_logging_discord"
-	]
+		"discord_lumberjack/discord_lumberjack",
+		"discord_lumberjack/test"
+	],
+	"python.testing.pytestArgs": [
+		"test"
+	],
+	"python.testing.unittestEnabled": false,
+	"python.testing.pytestEnabled": true,
 }

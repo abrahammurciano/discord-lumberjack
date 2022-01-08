@@ -1,17 +1,19 @@
 from abc import ABC, abstractmethod
 from logging import LogRecord, Formatter
-from typing import Callable, Iterable
+from typing import Any, Callable, Iterable
 
 
 class MessageCreator(ABC):
 	"""
 	A class which is able to create messages from a log record.
+
+	Subclasses must implement the `create_message` method.
 	"""
 
 	@abstractmethod
 	def messages(
 		self, record: LogRecord, format_func: Callable[[LogRecord], str]
-	) -> Iterable[dict]:
+	) -> Iterable[dict[str, Any]]:
 		"""
 		Format a log record to a discord message object (dict).
 

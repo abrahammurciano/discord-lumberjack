@@ -1,6 +1,6 @@
 import logging
-from typing import Any, Dict, Iterable
-from py_logging_discord.message_creator import MessageCreator
+from typing import Any, Dict
+from discord_lumberjack.message_creator import MessageCreator
 from .discord_handler import DiscordHandler
 
 
@@ -28,7 +28,7 @@ class DiscordWebhookHandler(DiscordHandler):
 		super().__init__(
 			url,
 			level=level,
-			msg_creator=msg_creator,
+			message_creator=msg_creator,
 			allowed_fields=(
 				"content",
 				"username",

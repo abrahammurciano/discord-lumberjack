@@ -1,15 +1,13 @@
-from abc import ABC, abstractmethod
 import logging
-import asyncio
-from typing import Any, Dict, Iterable, Mapping, MutableMapping
+from threading import Thread
+from typing import Any, Dict, Iterable, Mapping
 import requests
-from message_creator import MessageCreator
-from py_logging_discord.message_creator import BasicMessageCreator
+from discord_lumberjack.message_creator import BasicMessageCreator, MessageCreator
 
 _default_message_creator = BasicMessageCreator()
 
 
-class DiscordHandler(ABC, logging.Handler):
+class DiscordHandler(logging.Handler):
 	"""A base class for logging handlers that send messages to Discord.
 
 	Args:
@@ -24,14 +22,14 @@ class DiscordHandler(ABC, logging.Handler):
 		self,
 		url: str,
 		level: int = logging.NOTSET,
-		msg_creator: MessageCreator = None,
+		message_creator: MessageCreator = None,
 		http_headers: Mapping[str, Any] = None,
 		allowed_fields: Iterable[str] = None,
 	) -> None:
 		super().__init__(level=level)
 		self.__url = url
 		self.__session = requests.Session()
-		self.__message_creator = msg_creator or _default_message_creator
+		self.__message_creator = message_creator or _default_message_creator
 		self.__session.headers.update(http_headers or {})
 		self.__allowed_fields = allowed_fields
 
@@ -43,7 +41,13 @@ class DiscordHandler(ABC, logging.Handler):
 		Args:
 			record (logging.LogRecord): The log record to send.
 		"""
-		asyncio.create_task(self.send_messages(record))
+		try:
+			thread = Thread(
+				target=self.send_messages, name="DiscordLumberjack", args=(record,)
+			)
+			thread.start()
+		except Exception:
+			self.handleError(record)
 
 	def transform_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
 		"""Transform a message before sending it to Discord.
@@ -91,8 +95,10 @@ class DiscordHandler(ABC, logging.Handler):
 			for msg in self.__message_creator.messages(record, self.format)
 		)
 
-	async def send_messages(self, record: logging.LogRecord):
+	def send_messages(self, record: logging.LogRecord):
 		for msg in self.prepare_messages(record):
-			response = self.__session.post(self.__url, msg)
-			if response.status_code != 200:
-				self.handleError(record)
+			response = self.__session.post(self.__url, json=msg)
+			if response.status_code >= 300:
+				raise RuntimeError(
+					f"Failed to send message to Discord: {response.text}"
+				)

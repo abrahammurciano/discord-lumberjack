@@ -1,6 +1,6 @@
 from logging import LogRecord
 from typing import Callable, Iterable, Mapping
-from message_creator import MessageCreator
+from .message_creator import MessageCreator
 from .log_colours import LogColours
 from .embed import Embed
 
