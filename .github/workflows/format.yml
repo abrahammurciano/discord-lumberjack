@@ -31,11 +31,10 @@ jobs:
       - name: Check for modified files
         id: git-check
         run: echo ::set-output name=modified::$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)
-      - name: Push changes
+      - name: Create Pull Request
         if: steps.git-check.outputs.modified == 'true'
-        run: |
-          git config --global user.name 'Black With Tabs'
-          git config --global user.email 'noreply@github.com'
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git commit -am "Formatted code (GitHub Action)"
-          git push --force
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          title: Autoformat code
+          commit-message: autoformatted code with black-with-tabs
