@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>discord_lumberjack.message_creators API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Message Creators …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,27 @@
 <h1 class="title">Module <code>discord_lumberjack.message_creators</code></h1>
 </header>
 <section id="section-intro">
+<h2 id="message-creators">Message Creators</h2>
+<p>In order to send nice looking messages, there are a few message creators available (located in the <code><a title="discord_lumberjack.message_creators" href="#discord_lumberjack.message_creators">discord_lumberjack.message_creators</a></code> module). These are responsible for converting a <code>logging.LogRecord</code> into a message structure that will be sent to Discord's API.</p>
+<p>The message creators provided currently will split extremely long messages into several in order to fit within Discord's message limits. If you decide to create your own one, keep that in mind too.</p>
+<p>The available message creators are:</p>
+<ul>
+<li><code>BasicMessageCreator</code> - This is a simple message creator which will use the handler's set formatter to send the message as plain text. By default, the message will be formatted in monospace, but this can be disabled via the constructor.</li>
+<li><code>EmbedMessageCreator</code> - This message creator will create a fancy-looking embed message from the log record. It will ignore the handler's formatter.</li>
+</ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from .message_creator import MessageCreator
+<pre><code class="python">&#34;&#34;&#34;
+
+.. include:: ../../README.md
+        :start-after: &lt;!-- message_creators_start --&gt;
+        :end-before: &lt;!-- message_creators_end --&gt;
+
+&#34;&#34;&#34;
+
+from .message_creator import MessageCreator
 from .basic_message_creator import BasicMessageCreator
 from .embed_message_creator import EmbedMessageCreator</code></pre>
 </details>
@@ -66,7 +82,9 @@ from .embed_message_creator import EmbedMessageCreator</code></pre>
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#message-creators">Message Creators</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>
