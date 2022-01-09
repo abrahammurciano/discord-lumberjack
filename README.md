@@ -14,6 +14,8 @@ To install this python module, run the following command
 $ pip install discord-lumberjack
 ```
 
+<!-- handlers_start -->
+
 ## Handlers
 
 This python module provides several logging handlers (located in the `discord_lumberjack.handlers` module) which will send the logs it recieves to a Discord webhook, server channel, or DM channel.
@@ -25,6 +27,9 @@ The available handlers are:
 -   `DiscordWebhookHandler` - Uses a webhook URL to send the logs to.
 -   `DiscordHandler` - This is the base class for the other three. You probably don't want to use this unless you're creating your own fancy handler.
 
+<!-- handlers_end -->
+<!-- message_creators_start -->
+
 ## Message Creators
 
 In order to send nice looking messages, there are a few message creators available (located in the `discord_lumberjack.message_creators` module). These are responsible for converting a `logging.LogRecord` into a message structure that will be sent to Discord's API.
@@ -35,6 +40,8 @@ The available message creators are:
 
 -   `BasicMessageCreator` - This is a simple message creator which will use the handler's set formatter to send the message as plain text. By default, the message will be formatted in monospace, but this can be disabled via the constructor.
 -   `EmbedMessageCreator` - This message creator will create a fancy-looking embed message from the log record. It will ignore the handler's formatter.
+
+<!-- message_creators_end -->
 
 ## Usage
 
