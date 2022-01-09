@@ -37,3 +37,4 @@ jobs:
         with:
           title: Autoformat code
           commit-message: autoformatted code with black-with-tabs
+          labels: automerge
