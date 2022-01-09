@@ -10,7 +10,7 @@ from discord_lumberjack.handler import (
 	DiscordWebhookHandler,
 	DiscordDMHandler,
 )
-from discord_lumberjack.message_creator import MessageCreator
+from discord_lumberjack.message_creators import MessageCreator
 import random
 import os
 

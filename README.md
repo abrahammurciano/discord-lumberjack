@@ -10,28 +10,51 @@ To install this python module, run the following command
 $ pip install discord-lumberjack
 ```
 
+# Handlers
+
+This python module provides several logging handlers (located in the `discord_lumberjack.handlers` module) which will send the logs it recieves to a Discord webhook, server channel, or DM channel.
+
+The available handlers are:
+
+-   `DiscordChannelHandler` - Uses a bot token and a channel ID to send logs to the given channel from the given bot.
+-   `DiscordDMHandler` - Uses a bot token and a user ID to send logs to the given user from the given bot.
+-   `DiscordWebhookHandler` - Uses a webhook URL to send the logs to.
+-   `DiscordHandler` - This is the base class for the other three. You probably don't want to use this unless you're creating your own fancy handler.
+
+# Message Creators
+
+In order to send nice looking messages, there are a few message creators available (located in the `discord_lumberjack.message_creators` module). These are responsible for converting a `logging.LogRecord` into a message structure that will be sent to Discord's API.
+
+The message creators provided currently will split extremely long messages into several in order to fit within Discord's message limits. If you decide to create your own one, keep that in mind too.
+
+The available message creators are:
+
+-   `BasicMessageCreator` - This is a simple message creator which will use the handler's set formatter to send the message as plain text. By default, the message will be formatted in monospace, but this can be disabled via the constructor.
+-   `EmbedMessageCreator` - This message creator will create a fancy-looking embed message from the log record. It will ignore the handler's formatter.
+
 # Usage
 
-This python module provides a logging handler which will send the logs it recieves to a discord channel, and another which sends them to a DM. In order to use this module, you must first create a Discord bot. This can be done on the [Discord Developer Portal](https://discord.com/developers/applications).
+The easiest way to get started is to create a webhook and use that, but if you're using this to log a Discord bot, you can use it's token directly, without needing to create webhooks.
 
-### Import
+## Import
 
-First, you should import the handler. You can import `DiscordLogHandler` to log to a channel, or `DiscordDmLogHandler` to log to a DM, or both.
+First, you should import the handlers you want to use. For this example, we'll assume we have a Discord bot and we'd like to use it to log every message to a channel and also to send errors to a DM.
+
+We'll be using the `DiscordChannelHandler` to send all messages of level `INFO` and above to the channel and `DiscordDMHandler` to send messages of level `ERROR` and above to a DM.
 
 ```py
-from discord_lumberjack import DiscordLogHandler, DiscordDmLogHandler
+from discord_lumberjack.handlers import DiscordChannelHandler, DiscordDMHandler
 ```
 
-### Construction
+## Basic Setup
 
-You should then construct the handler. Here are all the available arguments you may pass to `DiscordLogHandler`'s constructor.
-
--   **token** _str_ - A bot's token, provided by Discord, used to send the log messages from that bot.
--   **channel_id** _int_ - The ID of a discord channel which the bot is allowed to send messages to. Logs will be sent to this channel.
--   **level** _int, optional_ - The minimum log level that this handler should handler. You probably want to use one of these values: `logging.NOTSET`, `logging.DEBUG`, `logging.INFO`, `logging.WARNING`, `logging.ERROR`, or `logging.CRITICAL`. The default value is `logging.NOTSET`. [Read more about log levels.](https://docs.python.org/3/library/logging.html#logging-levels)
-
-Here are the parameters available to `DiscordDmLogHandler`.
-
--   **token** _str_ - Same as for `DiscordLogHandler.
--   **user_id** _int_ - The ID of a user whom the bot is allowed to send messages to. Logs will be sent to this user.
--   **level** _int, optional_ - Same as for `DiscordLogHandler`.
+```py
+import logging
+logging.basicConfig(
+	level=logging.INFO,
+	handlers=[
+		DiscordChannelHandler(token=my_bot_token, channel_id=my_channel_id),
+		DiscordDMHandler(token=my_bot_token, user_id=my_user_id, level=logging.ERROR),
+	]
+)
+```
