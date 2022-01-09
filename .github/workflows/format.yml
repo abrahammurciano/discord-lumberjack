@@ -21,6 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install typing-extensions
+          pip install mypy-extensions
       - name: Install black-with-tabs
         run: |
           pip install black-with-tabs
