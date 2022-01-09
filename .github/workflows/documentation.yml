@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  format:
+  docs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -18,6 +18,9 @@ jobs:
       - name: Upgrade pip
         run: |
           pip install --upgrade pip
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
       - name: Install pdoc3
         run: |
           pip install pdoc3
