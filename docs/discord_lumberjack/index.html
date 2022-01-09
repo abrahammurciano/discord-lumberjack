@@ -24,11 +24,13 @@
 <section id="section-intro">
 <h1 id="discord-lumberjack">discord-lumberjack</h1>
 <p>A Python logging handler which sends its logs to a Discord Channel or Webhook.</p>
-<h1 id="installation">Installation</h1>
+<h2 id="documentation">Documentation</h2>
+<p>You can find the documentation <a href="https://abrahammurciano.github.io/discord-lumberjack/discord_lumberjack/">here</a>.</p>
+<h2 id="installation">Installation</h2>
 <p>To install this python module, run the following command</p>
 <pre><code>$ pip install discord-lumberjack
 </code></pre>
-<h1 id="handlers">Handlers</h1>
+<h2 id="handlers">Handlers</h2>
 <p>This python module provides several logging handlers (located in the <code><a title="discord_lumberjack.handlers" href="handlers/index.html">discord_lumberjack.handlers</a></code> module) which will send the logs it recieves to a Discord webhook, server channel, or DM channel.</p>
 <p>The available handlers are:</p>
 <ul>
@@ -37,7 +39,7 @@
 <li><code>DiscordWebhookHandler</code> - Uses a webhook URL to send the logs to.</li>
 <li><code>DiscordHandler</code> - This is the base class for the other three. You probably don't want to use this unless you're creating your own fancy handler.</li>
 </ul>
-<h1 id="message-creators">Message Creators</h1>
+<h2 id="message-creators">Message Creators</h2>
 <p>In order to send nice looking messages, there are a few message creators available (located in the <code><a title="discord_lumberjack.message_creators" href="message_creators/index.html">discord_lumberjack.message_creators</a></code> module). These are responsible for converting a <code>logging.LogRecord</code> into a message structure that will be sent to Discord's API.</p>
 <p>The message creators provided currently will split extremely long messages into several in order to fit within Discord's message limits. If you decide to create your own one, keep that in mind too.</p>
 <p>The available message creators are:</p>
@@ -45,14 +47,15 @@
 <li><code>BasicMessageCreator</code> - This is a simple message creator which will use the handler's set formatter to send the message as plain text. By default, the message will be formatted in monospace, but this can be disabled via the constructor.</li>
 <li><code>EmbedMessageCreator</code> - This message creator will create a fancy-looking embed message from the log record. It will ignore the handler's formatter.</li>
 </ul>
-<h1 id="usage">Usage</h1>
+<h2 id="usage">Usage</h2>
 <p>The easiest way to get started is to create a webhook and use that, but if you're using this to log a Discord bot, you can use it's token directly, without needing to create webhooks.</p>
-<h2 id="import">Import</h2>
+<h3 id="import">Import</h3>
 <p>First, you should import the handlers you want to use. For this example, we'll assume we have a Discord bot and we'd like to use it to log every message to a channel and also to send errors to a DM.</p>
 <p>We'll be using the <code>DiscordChannelHandler</code> to send all messages of level <code>INFO</code> and above to the channel and <code>DiscordDMHandler</code> to send messages of level <code>ERROR</code> and above to a DM.</p>
 <pre><code class="language-py">from discord_lumberjack.handlers import DiscordChannelHandler, DiscordDMHandler
 </code></pre>
-<h2 id="basic-setup">Basic Setup</h2>
+<h3 id="basic-setup">Basic Setup</h3>
+<p>You should really read the <a href="https://docs.python.org/3/howto/logging.html#logging-basic-tutorial">documentation for the <code>logging</code> module</a> to learn how to set up your logging, but here's a quick snippet to get you started.</p>
 <pre><code class="language-py">import logging
 logging.basicConfig(
     level=logging.INFO,
@@ -61,6 +64,10 @@ logging.basicConfig(
         DiscordDMHandler(token=my_bot_token, user_id=my_user_id, level=logging.ERROR),
     ]
 )
+</code></pre>
+<p>Once you've set up your logging, you can start logging messages like this:</p>
+<pre><code class="language-py">logging.info(&quot;This is an informative message that will be sent to the channel.&quot;)
+logging.error(&quot;This is an error, so it will also be sent to the DM.&quot;)
 </code></pre>
 <details class="source">
 <summary>
@@ -101,13 +108,16 @@ from . import message_creators</code></pre>
 <h1>Index</h1>
 <div class="toc">
 <ul>
-<li><a href="#discord-lumberjack">discord-lumberjack</a></li>
+<li><a href="#discord-lumberjack">discord-lumberjack</a><ul>
+<li><a href="#documentation">Documentation</a></li>
 <li><a href="#installation">Installation</a></li>
 <li><a href="#handlers">Handlers</a></li>
 <li><a href="#message-creators">Message Creators</a></li>
 <li><a href="#usage">Usage</a><ul>
 <li><a href="#import">Import</a></li>
 <li><a href="#basic-setup">Basic Setup</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
