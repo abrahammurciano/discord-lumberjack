@@ -1,5 +1,5 @@
 import logging
-from threading import Thread
+import threading
 from typing import Any, Dict, Iterable, Mapping
 import requests
 from discord_lumberjack.message_creator import BasicMessageCreator, MessageCreator
@@ -42,7 +42,7 @@ class DiscordHandler(logging.Handler):
 			record (logging.LogRecord): The log record to send.
 		"""
 		try:
-			thread = Thread(
+			thread = threading.Thread(
 				target=self.send_messages, name="DiscordLumberjack", args=(record,)
 			)
 			thread.start()
@@ -96,6 +96,14 @@ class DiscordHandler(logging.Handler):
 		)
 
 	def send_messages(self, record: logging.LogRecord):
+		"""Send the messages returned by prepare_messages to Discord.
+
+		Args:
+			record (logging.LogRecord): The log record to send messages about
+
+		Raises:
+			RuntimeError: If the request to Discord was unsuccessful.
+		"""
 		for msg in self.prepare_messages(record):
 			response = self.__session.post(self.__url, json=msg)
 			if response.status_code >= 300:

@@ -1,8 +1,8 @@
 {
 	"python.pythonPath": "/home/abraham/Documents/discord_lumberjack/.venv/bin/python",
 	"mypy.targets": [
-		"discord_lumberjack/discord_lumberjack",
-		"discord_lumberjack/test"
+		"discord_lumberjack",
+		"test"
 	],
 	"python.testing.pytestArgs": [
 		"test"
