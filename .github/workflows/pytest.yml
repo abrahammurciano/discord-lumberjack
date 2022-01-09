@@ -21,9 +21,9 @@ jobs:
       - name: Upgrade pip
         run: |
           pip install --upgrade pip
-      - name: Install dependencies
+      - name: Install discord_lumberjack
         run: |
-          pip install -r requirements.txt
+          pip install .
       - name: Install PyTest
         run: |
           pip install pytest
