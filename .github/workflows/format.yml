@@ -37,4 +37,5 @@ jobs:
         with:
           title: Autoformat code
           commit-message: autoformatted code with black-with-tabs
-          labels: automerge
+          branch: autoformat
+          token: ${{ secrets.PERSONAL_GH_TOKEN }}
