@@ -133,7 +133,7 @@ def test_handler(logger: Logger):
 	"""Log a message with each handler."""
 	logger.info(f"test_webhook_handler passed successfully.")
 	for thread in threading.enumerate():
-		if thread.getName() == "DiscordLumberjack":
+		if thread.name == "DiscordLumberjack":
 			thread.join()
 
 
@@ -142,5 +142,5 @@ def test_untextable_user(logger_with_untextable_user: Logger):
 	with raises(RuntimeError):
 		logger_with_untextable_user.info(f"test_webhook_handler passed successfully.")
 		for thread in threading.enumerate():
-			if thread.getName() == "DiscordLumberjack":
+			if thread.name == "DiscordLumberjack":
 				thread.join()
