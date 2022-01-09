@@ -19,7 +19,7 @@ setup(
 	license="GPLv3",
 	packages=[
 		discord_lumberjack.__name__,
-		discord_lumberjack.handler.__name__,
+		discord_lumberjack.handlers.__name__,
 		discord_lumberjack.message_creators.__name__,
 	],
 	install_requires=requirements,

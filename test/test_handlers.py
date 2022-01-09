@@ -4,7 +4,7 @@ import logging
 from typing import Any, Callable, Dict, Generator, Iterable, Optional
 from pytest import fixture, raises
 from logging import LogRecord, Logger
-from discord_lumberjack.handler import (
+from discord_lumberjack.handlers import (
 	DiscordHandler,
 	DiscordChannelHandler,
 	DiscordWebhookHandler,

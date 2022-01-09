@@ -5,5 +5,5 @@
 __version__ = "1.0.1"
 __author__ = "Abraham Murciano"
 
-from . import handler
+from . import handlers
 from . import message_creators
