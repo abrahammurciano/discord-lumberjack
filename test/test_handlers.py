@@ -4,13 +4,13 @@ import logging
 from typing import Any, Callable, Dict, Generator, Iterable, Optional
 from pytest import fixture, raises
 from logging import LogRecord, Logger
-from discord_lumberjack.handler import (
+from discord_lumberjack.handlers import (
 	DiscordHandler,
 	DiscordChannelHandler,
 	DiscordWebhookHandler,
 	DiscordDMHandler,
 )
-from discord_lumberjack.message_creator import MessageCreator
+from discord_lumberjack.message_creators import MessageCreator
 import random
 import os
 

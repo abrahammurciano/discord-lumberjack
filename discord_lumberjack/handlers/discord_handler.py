@@ -2,7 +2,7 @@ import logging
 import threading
 from typing import Any, Dict, Iterable, Mapping
 import requests
-from discord_lumberjack.message_creator import BasicMessageCreator, MessageCreator
+from discord_lumberjack.message_creators import BasicMessageCreator, MessageCreator
 
 _default_message_creator = BasicMessageCreator()
 

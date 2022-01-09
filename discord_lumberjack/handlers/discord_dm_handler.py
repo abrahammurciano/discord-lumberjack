@@ -1,6 +1,6 @@
 import logging
 import requests
-from discord_lumberjack.message_creator import MessageCreator
+from discord_lumberjack.message_creators import MessageCreator
 from .discord_channel_handler import DiscordChannelHandler
 
 

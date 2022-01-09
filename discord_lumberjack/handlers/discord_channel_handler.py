@@ -1,6 +1,6 @@
 import logging
 
-from discord_lumberjack.message_creator import MessageCreator
+from discord_lumberjack.message_creators import MessageCreator
 from .discord_handler import DiscordHandler
 
 
