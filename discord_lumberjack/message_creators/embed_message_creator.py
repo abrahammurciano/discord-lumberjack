@@ -13,4 +13,5 @@ class EmbedMessageCreator(MessageCreator):
 	def messages(
 		self, record: LogRecord, format_func: Callable[[LogRecord], str]
 	) -> Iterable[dict]:
+		# TODO: Implement
 		raise NotImplementedError()
