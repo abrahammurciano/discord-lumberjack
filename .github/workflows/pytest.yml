@@ -32,9 +32,10 @@ jobs:
           pip install pytest
       - name: Run tests
         env:
-          WEBHOOK_URL: ${{ secrets.WebhookURL }}
-          BOT_TOKEN: ${{ secrets.BotToken }}
-          CHANNEL_ID: ${{ secrets.ChannelID }}
-          DISCORD_DM_ID: ${{ secrets.DiscordDMID }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+          DISCORD_DM_ID: ${{ secrets.DISCORD_DM_ID }}
+          DISCORD_UNTEXTABLE_DM_ID: ${{ secrets.DISCORD_UNTEXTABLE_DM_ID }}
         run: |
           pytest
