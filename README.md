@@ -1,6 +1,6 @@
 # discord-lumberjack
 
-A Python logging handler which sends its logs to a Discord Channel
+A Python logging handler which sends its logs to a Discord Channel or Webhook.
 
 # Installation
 
