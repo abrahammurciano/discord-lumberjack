@@ -20,7 +20,7 @@ jobs:
           pip install --upgrade pip
       - name: Install dependencies
         run: |
-          pip install typing-etensions
+          pip install typing-extensions
       - name: Install black-with-tabs
         run: |
           pip install black-with-tabs
