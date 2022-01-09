@@ -30,6 +30,7 @@
 <p>To install this python module, run the following command</p>
 <pre><code>$ pip install discord-lumberjack
 </code></pre>
+<!-- handlers_start -->
 <h2 id="handlers">Handlers</h2>
 <p>This python module provides several logging handlers (located in the <code><a title="discord_lumberjack.handlers" href="handlers/index.html">discord_lumberjack.handlers</a></code> module) which will send the logs it recieves to a Discord webhook, server channel, or DM channel.</p>
 <p>The available handlers are:</p>
@@ -39,6 +40,8 @@
 <li><code>DiscordWebhookHandler</code> - Uses a webhook URL to send the logs to.</li>
 <li><code>DiscordHandler</code> - This is the base class for the other three. You probably don't want to use this unless you're creating your own fancy handler.</li>
 </ul>
+<!-- handlers_end -->
+<!-- message_creators_start -->
 <h2 id="message-creators">Message Creators</h2>
 <p>In order to send nice looking messages, there are a few message creators available (located in the <code><a title="discord_lumberjack.message_creators" href="message_creators/index.html">discord_lumberjack.message_creators</a></code> module). These are responsible for converting a <code>logging.LogRecord</code> into a message structure that will be sent to Discord's API.</p>
 <p>The message creators provided currently will split extremely long messages into several in order to fit within Discord's message limits. If you decide to create your own one, keep that in mind too.</p>
@@ -47,6 +50,7 @@
 <li><code>BasicMessageCreator</code> - This is a simple message creator which will use the handler's set formatter to send the message as plain text. By default, the message will be formatted in monospace, but this can be disabled via the constructor.</li>
 <li><code>EmbedMessageCreator</code> - This message creator will create a fancy-looking embed message from the log record. It will ignore the handler's formatter.</li>
 </ul>
+<!-- message_creators_end -->
 <h2 id="usage">Usage</h2>
 <p>The easiest way to get started is to create a webhook and use that, but if you're using this to log a Discord bot, you can use it's token directly, without needing to create webhooks.</p>
 <h3 id="import">Import</h3>
@@ -89,11 +93,11 @@ from . import message_creators</code></pre>
 <dl>
 <dt><code class="name"><a title="discord_lumberjack.handlers" href="handlers/index.html">discord_lumberjack.handlers</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Handlers …</p></div>
 </dd>
 <dt><code class="name"><a title="discord_lumberjack.message_creators" href="message_creators/index.html">discord_lumberjack.message_creators</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Message Creators …</p></div>
 </dd>
 </dl>
 </section>

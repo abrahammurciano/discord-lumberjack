@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>discord_lumberjack.handlers API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Handlers …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,28 @@
 <h1 class="title">Module <code>discord_lumberjack.handlers</code></h1>
 </header>
 <section id="section-intro">
+<h2 id="handlers">Handlers</h2>
+<p>This python module provides several logging handlers (located in the <code><a title="discord_lumberjack.handlers" href="#discord_lumberjack.handlers">discord_lumberjack.handlers</a></code> module) which will send the logs it recieves to a Discord webhook, server channel, or DM channel.</p>
+<p>The available handlers are:</p>
+<ul>
+<li><code>DiscordChannelHandler</code> - Uses a bot token and a channel ID to send logs to the given channel from the given bot.</li>
+<li><code>DiscordDMHandler</code> - Uses a bot token and a user ID to send logs to the given user from the given bot.</li>
+<li><code>DiscordWebhookHandler</code> - Uses a webhook URL to send the logs to.</li>
+<li><code>DiscordHandler</code> - This is the base class for the other three. You probably don't want to use this unless you're creating your own fancy handler.</li>
+</ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from .discord_handler import DiscordHandler
+<pre><code class="python">&#34;&#34;&#34;
+
+.. include:: ../../README.md
+        :start-after: &lt;!-- handlers_start --&gt;
+        :end-before: &lt;!-- handlers_end --&gt;
+
+&#34;&#34;&#34;
+
+from .discord_handler import DiscordHandler
 from .discord_webhook_handler import DiscordWebhookHandler
 from .discord_channel_handler import DiscordChannelHandler
 from .discord_dm_handler import DiscordDMHandler</code></pre>
@@ -63,7 +80,9 @@ from .discord_dm_handler import DiscordDMHandler</code></pre>
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#handlers">Handlers</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>
