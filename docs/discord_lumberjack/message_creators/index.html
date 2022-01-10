@@ -27,8 +27,8 @@
 <p>The message creators provided currently will split extremely long messages into several in order to fit within Discord's message limits. If you decide to create your own one, keep that in mind too.</p>
 <p>The available message creators are:</p>
 <ul>
-<li><code>BasicMessageCreator</code> - This is a simple message creator which will use the handler's set formatter to send the message as plain text. By default, the message will be formatted in monospace, but this can be disabled via the constructor.</li>
-<li><code>EmbedMessageCreator</code> - This message creator will create a fancy-looking embed message from the log record. It will ignore the handler's formatter.</li>
+<li><code><a title="discord_lumberjack.message_creators.BasicMessageCreator" href="#discord_lumberjack.message_creators.BasicMessageCreator">BasicMessageCreator</a></code> - This is a simple message creator which will use the handler's set formatter to send the message as plain text. By default, the message will be formatted in monospace, but this can be disabled via the constructor.</li>
+<li><code><a title="discord_lumberjack.message_creators.EmbedMessageCreator" href="#discord_lumberjack.message_creators.EmbedMessageCreator">EmbedMessageCreator</a></code> - This message creator will create a fancy-looking embed message from the log record. It will ignore the handler's formatter.</li>
 </ul>
 <details class="source">
 <summary>
@@ -44,7 +44,13 @@
 
 from .message_creator import MessageCreator
 from .basic_message_creator import BasicMessageCreator
-from .embed_message_creator import EmbedMessageCreator</code></pre>
+from .embed_message_creator import EmbedMessageCreator
+
+__all__ = (
+        &#34;MessageCreator&#34;,
+        &#34;BasicMessageCreator&#34;,
+        &#34;EmbedMessageCreator&#34;,
+)</code></pre>
 </details>
 </section>
 <section>
@@ -77,6 +83,202 @@ from .embed_message_creator import EmbedMessageCreator</code></pre>
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="discord_lumberjack.message_creators.BasicMessageCreator"><code class="flex name class">
+<span>class <span class="ident">BasicMessageCreator</span></span>
+<span>(</span><span>monospace: bool = True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class creates messages displayed in plain text.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>monospace</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether or not to format the messages as monospace. Defaults to True.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BasicMessageCreator(MessageCreator):
+        &#34;&#34;&#34;
+        This class creates messages displayed in plain text.
+
+        Args:
+                monospace (bool, optional): Whether or not to format the messages as monospace. Defaults to True.
+        &#34;&#34;&#34;
+
+        def __init__(self, monospace: bool = True) -&gt; None:
+                super().__init__()
+                if monospace:
+                        self.__prefix = &#34;```&#34;
+                        self.__suffix = &#34;```&#34;
+                        self.__content_limit = 1994
+                else:
+                        self.__prefix = &#34;&#34;
+                        self.__suffix = &#34;&#34;
+                        self.__content_limit = 2000
+
+        def messages(
+                self, record: LogRecord, format_func: Callable[[LogRecord], str]
+        ) -&gt; Iterable[dict]:
+                return (
+                        {&#34;content&#34;: self.__prefix + &#34;&#34;.join(chunk) + self.__suffix}
+                        for chunk in self.__chunks(format_func(record), self.__content_limit)
+                )
+
+        def __chunks(self, seq: Sequence[T], chunk_size: int) -&gt; Iterable[Sequence[T]]:
+                return (seq[pos : pos + chunk_size] for pos in range(0, len(seq), chunk_size))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="discord_lumberjack.message_creators.message_creator.MessageCreator.messages" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator.messages">messages</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="discord_lumberjack.message_creators.EmbedMessageCreator"><code class="flex name class">
+<span>class <span class="ident">EmbedMessageCreator</span></span>
+<span>(</span><span>colours: Mapping[int, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class which is able to create messages from a log record.</p>
+<p>Subclasses must implement the <code>create_message</code> method.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class EmbedMessageCreator(MessageCreator):
+        def __init__(self, colours: Mapping[int, int]) -&gt; None:
+                super().__init__()
+                self.__colours = LogColours(colours)
+
+        def messages(
+                self, record: LogRecord, format_func: Callable[[LogRecord], str]
+        ) -&gt; Iterable[dict]:
+                raise NotImplementedError()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="discord_lumberjack.message_creators.message_creator.MessageCreator.messages" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator.messages">messages</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="discord_lumberjack.message_creators.MessageCreator"><code class="flex name class">
+<span>class <span class="ident">MessageCreator</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class which is able to create messages from a log record.</p>
+<p>Subclasses must implement the <code>create_message</code> method.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MessageCreator(ABC):
+        &#34;&#34;&#34;
+        A class which is able to create messages from a log record.
+
+        Subclasses must implement the `create_message` method.
+        &#34;&#34;&#34;
+
+        @abstractmethod
+        def messages(
+                self, record: LogRecord, format_func: Callable[[LogRecord], str]
+        ) -&gt; Iterable[dict[str, Any]]:
+                &#34;&#34;&#34;
+                Format a log record to a discord message object (dict).
+
+                This method should be overridden by subclasses for the subclass to be able to specify the format of the message it creates.
+
+                Subclasses may choose to use the `format_func` argument to format the log record to a string, or may ignore it completely and format the messages directly using the log record, or a combination of the two.
+
+                Subclasses should make sure the messages it creates are not too long to be rejected by discord. If they are, they should split the message into multiple messages.
+
+                Args:
+                        record (LogRecord): The log record to format into a message.
+                        format_func (Callable[[LogRecord], str]): A function which formats a log record into a string. This function is expected to originate from a `Formatter` instance.
+
+                Returns:
+                        Iterable[dict]: An iterable of discord message objects (dicts). The reason it returns many messages is in case there is too much information in the log record to fit into a single message.
+                &#34;&#34;&#34;
+                pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>abc.ABC</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="discord_lumberjack.message_creators.basic_message_creator.BasicMessageCreator" href="basic_message_creator.html#discord_lumberjack.message_creators.basic_message_creator.BasicMessageCreator">BasicMessageCreator</a></li>
+<li><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator">EmbedMessageCreator</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="discord_lumberjack.message_creators.MessageCreator.messages"><code class="name flex">
+<span>def <span class="ident">messages</span></span>(<span>self, record: logging.LogRecord, format_func: Callable[[logging.LogRecord], str]) ‑> Iterable[dict[str, Any]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Format a log record to a discord message object (dict).</p>
+<p>This method should be overridden by subclasses for the subclass to be able to specify the format of the message it creates.</p>
+<p>Subclasses may choose to use the <code>format_func</code> argument to format the log record to a string, or may ignore it completely and format the messages directly using the log record, or a combination of the two.</p>
+<p>Subclasses should make sure the messages it creates are not too long to be rejected by discord. If they are, they should split the message into multiple messages.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The log record to format into a message.</dd>
+<dt><strong><code>format_func</code></strong> :&ensp;<code>Callable[[LogRecord], str]</code></dt>
+<dd>A function which formats a log record into a string. This function is expected to originate from a <code>Formatter</code> instance.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Iterable[dict]</code></dt>
+<dd>An iterable of discord message objects (dicts). The reason it returns many messages is in case there is too much information in the log record to fit into a single message.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def messages(
+        self, record: LogRecord, format_func: Callable[[LogRecord], str]
+) -&gt; Iterable[dict[str, Any]]:
+        &#34;&#34;&#34;
+        Format a log record to a discord message object (dict).
+
+        This method should be overridden by subclasses for the subclass to be able to specify the format of the message it creates.
+
+        Subclasses may choose to use the `format_func` argument to format the log record to a string, or may ignore it completely and format the messages directly using the log record, or a combination of the two.
+
+        Subclasses should make sure the messages it creates are not too long to be rejected by discord. If they are, they should split the message into multiple messages.
+
+        Args:
+                record (LogRecord): The log record to format into a message.
+                format_func (Callable[[LogRecord], str]): A function which formats a log record into a string. This function is expected to originate from a `Formatter` instance.
+
+        Returns:
+                Iterable[dict]: An iterable of discord message objects (dicts). The reason it returns many messages is in case there is too much information in the log record to fit into a single message.
+        &#34;&#34;&#34;
+        pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -99,6 +301,22 @@ from .embed_message_creator import EmbedMessageCreator</code></pre>
 <li><code><a title="discord_lumberjack.message_creators.embed_message_creator" href="embed_message_creator.html">discord_lumberjack.message_creators.embed_message_creator</a></code></li>
 <li><code><a title="discord_lumberjack.message_creators.log_colours" href="log_colours.html">discord_lumberjack.message_creators.log_colours</a></code></li>
 <li><code><a title="discord_lumberjack.message_creators.message_creator" href="message_creator.html">discord_lumberjack.message_creators.message_creator</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="discord_lumberjack.message_creators.BasicMessageCreator" href="#discord_lumberjack.message_creators.BasicMessageCreator">BasicMessageCreator</a></code></h4>
+</li>
+<li>
+<h4><code><a title="discord_lumberjack.message_creators.EmbedMessageCreator" href="#discord_lumberjack.message_creators.EmbedMessageCreator">EmbedMessageCreator</a></code></h4>
+</li>
+<li>
+<h4><code><a title="discord_lumberjack.message_creators.MessageCreator" href="#discord_lumberjack.message_creators.MessageCreator">MessageCreator</a></code></h4>
+<ul class="">
+<li><code><a title="discord_lumberjack.message_creators.MessageCreator.messages" href="#discord_lumberjack.message_creators.MessageCreator.messages">messages</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
