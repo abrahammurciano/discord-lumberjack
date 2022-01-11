@@ -131,7 +131,7 @@ def test_allowed_fields(handler_with_broken_creator: DiscordHandler, record: Log
 
 def test_handler(logger: Logger):
 	"""Log a message with each handler."""
-	logger.info(f"test_webhook_handler passed successfully.")
+	logger.info(f"test_handler passed successfully.")
 	for thread in threading.enumerate():
 		if thread.name == "DiscordLumberjack":
 			thread.join()
@@ -140,7 +140,7 @@ def test_handler(logger: Logger):
 def test_untextable_user(logger_with_untextable_user: Logger):
 	"""Log a message with each handler."""
 	with raises(RuntimeError):
-		logger_with_untextable_user.info(f"test_webhook_handler passed successfully.")
+		logger_with_untextable_user.info(f"test_untextable_user failed.")
 		for thread in threading.enumerate():
 			if thread.name == "DiscordLumberjack":
 				thread.join()
