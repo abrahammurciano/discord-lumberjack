@@ -1,7 +1,7 @@
 from unittest.mock import patch
 import threading
 import logging
-from typing import Any, Callable, Dict, Generator, Iterable, Optional
+from typing import Any, Dict, Generator, Iterable, Optional
 from pytest import fixture, raises
 from logging import LogRecord, Logger
 from discord_lumberjack.handlers import (
@@ -24,15 +24,6 @@ def broken_message_creator() -> MessageCreator:
 			return [{"content": format_func(record), "extra_field": "extra_value"}]
 
 	return BrokenMessageCreator()
-
-
-@fixture
-def handler_with_broken_creator(broken_message_creator) -> DiscordHandler:
-	return DiscordHandler(
-		url="https://discordapp.com/api/webhooks/123456789/abcdefghijklmnopqrstuvwxyz",
-		message_creator=broken_message_creator,
-		allowed_fields=("content",),
-	)
 
 
 @fixture
@@ -120,13 +111,6 @@ def logger_with_untextable_user(
 	_logger.setLevel(logging.DEBUG)
 	_logger.addHandler(handler_with_untextable_user)
 	return _logger
-
-
-def test_allowed_fields(handler_with_broken_creator: DiscordHandler, record: LogRecord):
-	"""Test that only allowed fields are present in the message dict."""
-	messages = handler_with_broken_creator.prepare_messages(record)
-	for message in messages:
-		assert tuple(message.keys()) == ("content",)
 
 
 def test_handler(logger: Logger):

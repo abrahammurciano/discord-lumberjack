@@ -40,7 +40,7 @@ class DiscordWebhookHandler(DiscordHandler):
         Args:
                 url (str): The URL to make the request to. This must be a webhook URL.
                 level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
                 username (str, optional): The username to use when sending messages. Defaults to None.
                 avatar_url (str, optional): The avatar URL to use when sending messages. Defaults to None.
         &#34;&#34;&#34;
@@ -49,14 +49,14 @@ class DiscordWebhookHandler(DiscordHandler):
                 self,
                 url: str,
                 level: int = logging.NOTSET,
-                msg_creator: MessageCreator = None,
+                message_creator: MessageCreator = None,
                 username: str = None,
                 avatar_url: str = None,
         ) -&gt; None:
                 super().__init__(
                         url,
                         level=level,
-                        message_creator=msg_creator,
+                        message_creator=message_creator,
                         allowed_fields=(
                                 &#34;content&#34;,
                                 &#34;username&#34;,
@@ -101,7 +101,7 @@ class DiscordWebhookHandler(DiscordHandler):
 <dl>
 <dt id="discord_lumberjack.handlers.discord_webhook_handler.DiscordWebhookHandler"><code class="flex name class">
 <span>class <span class="ident">DiscordWebhookHandler</span></span>
-<span>(</span><span>url: str, level: int = 0, msg_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None, username: str = None, avatar_url: str = None)</span>
+<span>(</span><span>url: str, level: int = 0, message_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None, username: str = None, avatar_url: str = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A logging handler that sends messages to a Discord webhook.</p>
@@ -112,7 +112,7 @@ class DiscordWebhookHandler(DiscordHandler):
 <dd>The URL to make the request to. This must be a webhook URL.</dd>
 <dt><strong><code>level</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>The level at which to log. Defaults to logging.NOTSET.</dd>
-<dt><strong><code>msg_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
+<dt><strong><code>message_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
 <dd>An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.</dd>
 <dt><strong><code>username</code></strong> :&ensp;<code>str</code>, optional</dt>
 <dd>The username to use when sending messages. Defaults to None.</dd>
@@ -133,7 +133,7 @@ and the filter list to empty.</p></div>
         Args:
                 url (str): The URL to make the request to. This must be a webhook URL.
                 level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
                 username (str, optional): The username to use when sending messages. Defaults to None.
                 avatar_url (str, optional): The avatar URL to use when sending messages. Defaults to None.
         &#34;&#34;&#34;
@@ -142,14 +142,14 @@ and the filter list to empty.</p></div>
                 self,
                 url: str,
                 level: int = logging.NOTSET,
-                msg_creator: MessageCreator = None,
+                message_creator: MessageCreator = None,
                 username: str = None,
                 avatar_url: str = None,
         ) -&gt; None:
                 super().__init__(
                         url,
                         level=level,
-                        message_creator=msg_creator,
+                        message_creator=message_creator,
                         allowed_fields=(
                                 &#34;content&#34;,
                                 &#34;username&#34;,

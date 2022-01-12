@@ -22,8 +22,8 @@ class LogColours:
 		colours (Mapping[int, int], optional): A mapping of log levels to colours. Log levels which are not given will be taken from the closest provided log level less than it. Defaults to a sensible selection of colours.
 	"""
 
-	def __init__(self, colours: Mapping[int, int] = default_colours) -> None:
-		self.__colours = colours
+	def __init__(self, colours: Mapping[int, int] = None) -> None:
+		self.__colours = colours or default_colours
 
 	def __getitem__(self, level: int) -> int:
 		try:

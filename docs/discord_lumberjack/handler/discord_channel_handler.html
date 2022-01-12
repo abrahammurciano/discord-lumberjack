@@ -39,7 +39,7 @@ class DiscordChannelHandler(DiscordHandler):
                 bot_token (str): The authentication token of the Bot to send the message with.
                 channel_id (int): The ID of the Channel to send the message to.
                 level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
         &#34;&#34;&#34;
 
         def __init__(
@@ -47,12 +47,12 @@ class DiscordChannelHandler(DiscordHandler):
                 bot_token: str,
                 channel_id: int,
                 level: int = logging.NOTSET,
-                msg_creator: MessageCreator = None,
+                message_creator: MessageCreator = None,
         ) -&gt; None:
                 super().__init__(
                         f&#34;https://discord.com/api/channels/{channel_id}/messages&#34;,
                         level=level,
-                        message_creator=msg_creator,
+                        message_creator=message_creator,
                         http_headers={&#34;Authorization&#34;: f&#34;Bot {bot_token}&#34;},
                         allowed_fields=(
                                 &#34;content&#34;,
@@ -81,7 +81,7 @@ class DiscordChannelHandler(DiscordHandler):
 <dl>
 <dt id="discord_lumberjack.handler.discord_channel_handler.DiscordChannelHandler"><code class="flex name class">
 <span>class <span class="ident">DiscordChannelHandler</span></span>
-<span>(</span><span>bot_token: str, channel_id: int, level: int = 0, msg_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None)</span>
+<span>(</span><span>bot_token: str, channel_id: int, level: int = 0, message_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A logging handler that sends messages to a Discord Channel from a Bot.</p>
@@ -93,7 +93,7 @@ class DiscordChannelHandler(DiscordHandler):
 <dd>The ID of the Channel to send the message to.</dd>
 <dt><strong><code>level</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>The level at which to log. Defaults to logging.NOTSET.</dd>
-<dt><strong><code>msg_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
+<dt><strong><code>message_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
 <dd>An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.</dd>
 </dl>
 <p>Initializes the instance - basically setting the formatter to None
@@ -109,7 +109,7 @@ and the filter list to empty.</p></div>
                 bot_token (str): The authentication token of the Bot to send the message with.
                 channel_id (int): The ID of the Channel to send the message to.
                 level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
         &#34;&#34;&#34;
 
         def __init__(
@@ -117,12 +117,12 @@ and the filter list to empty.</p></div>
                 bot_token: str,
                 channel_id: int,
                 level: int = logging.NOTSET,
-                msg_creator: MessageCreator = None,
+                message_creator: MessageCreator = None,
         ) -&gt; None:
                 super().__init__(
                         f&#34;https://discord.com/api/channels/{channel_id}/messages&#34;,
                         level=level,
-                        message_creator=msg_creator,
+                        message_creator=message_creator,
                         http_headers={&#34;Authorization&#34;: f&#34;Bot {bot_token}&#34;},
                         allowed_fields=(
                                 &#34;content&#34;,

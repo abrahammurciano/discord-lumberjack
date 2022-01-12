@@ -15,7 +15,7 @@ class DiscordDMHandler(DiscordChannelHandler):
 		bot_token (str): The authentication token of the Bot to send the message with.
 		user_id (int): The ID of the user to send the message to.
 		level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-		msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+		message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
 	"""
 
 	def __init__(
@@ -23,13 +23,13 @@ class DiscordDMHandler(DiscordChannelHandler):
 		bot_token: str,
 		user_id: int,
 		level: int = logging.NOTSET,
-		msg_creator: MessageCreator = None,
+		message_creator: MessageCreator = None,
 	) -> None:
 		super().__init__(
 			bot_token,
 			self.create_dm_channel(user_id, bot_token),
 			level=level,
-			msg_creator=msg_creator,
+			message_creator=message_creator,
 		)
 
 	def create_dm_channel(self, user_id: int, bot_token: str) -> int:
