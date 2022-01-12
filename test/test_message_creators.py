@@ -1,41 +1,36 @@
-# TODO: Write tests for message creators
-from logging import DEBUG, Logger
-import logging
-from discord_lumberjack.handlers import DiscordWebhookHandler
-from discord_lumberjack.handlers.discord_handler import DiscordHandler
-from discord_lumberjack.message_creators import (
-	EmbedMessageCreator,
-	BasicMessageCreator,
-)
-from pytest import fixture
-import os
-import random
+from logging import LogRecord, Logger
+from typing import Callable
 from discord_lumberjack.message_creators import MessageCreator
+from discord_lumberjack.message_creators.embed import EmbedField
 
 
-@fixture(params=[BasicMessageCreator(), EmbedMessageCreator()])
-def message_creator(request) -> MessageCreator:
-	return request.param
-
-
-@fixture
-def handler(message_creator: MessageCreator) -> DiscordWebhookHandler:
-	return DiscordWebhookHandler(
-		url=os.environ["WEBHOOK_URL"], level=DEBUG, message_creator=message_creator,
-	)
-
-
-@fixture
-def logger(handler: DiscordHandler) -> Logger:
-	_logger = logging.getLogger(f"{__name__}.{random.random()}")
-	_logger.setLevel(logging.DEBUG)
-	_logger.addHandler(handler)
-	return _logger
-
-
-def test_message_creators(logger: Logger):
+def test_message_creators(
+	logger: Logger,
+	function_that_raises: Callable[[], None],
+	wait_for_messages: Callable[[], None],
+):
 	logger.debug("This is a debug message.")
 	try:
-		raise ValueError("This is a test ValueError exception.")
+		function_that_raises()
 	except ValueError:
 		logger.exception("An exception was thrown.")
+	wait_for_messages()
+
+
+def test_messages(message_creator: MessageCreator, record: LogRecord):
+	messages = message_creator.messages(record, lambda _: "Formatted record")
+	assert messages, "Messages should not be empty."
+	for message in messages:
+		has_content = "content" in message and bool(message["content"])
+		has_embeds = "embeds" in message and bool(message["embeds"])
+		assert has_content or has_embeds, "Message should have content or embeds."
+		if has_content:
+			assert isinstance(
+				message["content"], str
+			), "Message content should be a string."
+		if has_embeds:
+			for embed in message["embeds"]:
+				for field in embed["fields"]:
+					assert isinstance(field, dict), "Embed field should be a dict."
+					assert field["name"], "Embed field should have a name."
+					assert field["value"], "Embed field should have a value."

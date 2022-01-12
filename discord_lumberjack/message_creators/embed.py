@@ -108,7 +108,9 @@ class EmbedFieldSetter:
 		msg_component: Any = embed
 		for key in self.__key_chain:
 			msg_component = msg_component[key]
-		msg_component[self.__last_key] = full_value[: self.__limit]
+		msg_component[self.__last_key] = (
+			full_value[: self.__limit] if isinstance(full_value, str) else full_value
+		)
 		remainder = full_value[self.__limit :] if self.__limit is not None else None
 		if remainder:
 			new_embed_creator = new_embed_creator or (lambda _: empty_embed())

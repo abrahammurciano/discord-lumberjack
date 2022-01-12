@@ -1,5 +1,6 @@
 import logging
 import threading
+import time
 from typing import Any, Dict, Iterable, Mapping
 import requests
 from discord_lumberjack.message_creators import BasicMessageCreator, MessageCreator
@@ -88,6 +89,9 @@ class DiscordHandler(logging.Handler):
 		"""
 		for msg in self.prepare_messages(record):
 			response = self.__session.post(self.__url, json=msg)
+			while response.status_code == 429:
+				time.sleep(1)
+				response = self.__session.post(self.__url, json=msg)
 			if response.status_code >= 300:
 				raise RuntimeError(
 					f"Failed to send message to Discord: {response.text}"

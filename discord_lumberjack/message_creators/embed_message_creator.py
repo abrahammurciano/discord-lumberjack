@@ -6,6 +6,7 @@ from .embed import Embed, EmbedFieldSetter, empty_embed
 from .chunks import chunks
 import datetime as dt
 from itertools import chain
+import traceback
 
 
 class EmbedMessageCreator(MessageCreator):
@@ -47,6 +48,8 @@ class EmbedMessageCreator(MessageCreator):
 				first_embed, record, None, self.get_new_embed
 			):
 				embeds.append(new_embed)
+		for embed in embeds:
+			self.__fix_fields(embed)
 		return ({"embeds": embeds_chunk} for embeds_chunk in chunks(embeds, 10))
 
 	def get_colour(self, record: LogRecord) -> int:
@@ -190,7 +193,8 @@ class EmbedMessageCreator(MessageCreator):
 		Returns:
 			str: The string to set the timestamp to.
 		"""
-		return dt.datetime.fromtimestamp(record.created).isoformat()
+		tzinfo = dt.datetime.now().astimezone().tzinfo
+		return dt.datetime.fromtimestamp(record.created, tz=tzinfo).isoformat()
 
 	def get_image_url(self, record: LogRecord) -> str:
 		"""Returns the string to set the embed's image URL to. By default this is left empty.
@@ -228,7 +232,12 @@ class EmbedMessageCreator(MessageCreator):
 			)
 
 		def exception_info(record: LogRecord) -> str:
-			return f"```{record.exc_text}```"
+			nl = "\n"
+			return (
+				f"```{nl.join(traceback.format_tb(record.exc_info[2]))}```"
+				if record.exc_info and record.exc_info[2]
+				else ""
+			)
 
 		return [(exception_title, exception_info)]
 
@@ -272,3 +281,20 @@ class EmbedMessageCreator(MessageCreator):
 			EmbedFieldSetter(("timestamp",), self.get_timestamp),
 			EmbedFieldSetter(("image", "url"), self.get_image_url),
 		]
+
+	def __fix_fields(self, embed: Embed) -> None:
+		"""This method is called to fix any fields that are invalid.
+
+		It removes fields with no name and no value. If sets empty name or values to "-" if it has either a name or value.
+
+		Args:
+			embed (Embed): The embed whose fields to fix.
+		"""
+		embed["fields"] = [
+			field for field in embed["fields"] if field["name"] or field["value"]
+		]
+		for field in embed["fields"]:
+			if not field["name"]:
+				field["name"] = "-"
+			if not field["value"]:
+				field["value"] = "-"
