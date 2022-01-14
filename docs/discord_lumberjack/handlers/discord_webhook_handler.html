@@ -22,57 +22,6 @@
 <h1 class="title">Module <code>discord_lumberjack.handlers.discord_webhook_handler</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">import logging
-from typing import Any, Dict
-from discord_lumberjack.message_creators import MessageCreator
-from .discord_handler import DiscordHandler
-
-
-class DiscordWebhookHandler(DiscordHandler):
-        &#34;&#34;&#34;A logging handler that sends messages to a Discord webhook.
-
-        The username and avatar fields will override those provided by the message creator if provided here.
-
-        Args:
-                url (str): The URL to make the request to. This must be a webhook URL.
-                level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
-                username (str, optional): The username to use when sending messages. Defaults to None.
-                avatar_url (str, optional): The avatar URL to use when sending messages. Defaults to None.
-        &#34;&#34;&#34;
-
-        def __init__(
-                self,
-                url: str,
-                level: int = logging.NOTSET,
-                message_creator: MessageCreator = None,
-                username: str = None,
-                avatar_url: str = None,
-        ) -&gt; None:
-                super().__init__(url, level=level, message_creator=message_creator)
-                self.__username = username
-                self.__avatar_url = avatar_url
-
-        def transform_message(self, message: Dict[str, Any]) -&gt; Dict[str, Any]:
-                &#34;&#34;&#34;Replace the username and avatar fields set by the message creator (if any) with those provided to the handler (if any).
-
-                Args:
-                        message (Dict[str, Any]): The message provided by the message creator.
-
-                Returns:
-                        Dict[str, Any]: The transformed message.
-                &#34;&#34;&#34;
-                message = message.copy()
-                if self.__username:
-                        message[&#34;username&#34;] = self.__username
-                if self.__avatar_url:
-                        message[&#34;avatar_url&#34;] = self.__avatar_url
-                return message</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -105,51 +54,6 @@ class DiscordWebhookHandler(DiscordHandler):
 </dl>
 <p>Initializes the instance - basically setting the formatter to None
 and the filter list to empty.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DiscordWebhookHandler(DiscordHandler):
-        &#34;&#34;&#34;A logging handler that sends messages to a Discord webhook.
-
-        The username and avatar fields will override those provided by the message creator if provided here.
-
-        Args:
-                url (str): The URL to make the request to. This must be a webhook URL.
-                level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
-                username (str, optional): The username to use when sending messages. Defaults to None.
-                avatar_url (str, optional): The avatar URL to use when sending messages. Defaults to None.
-        &#34;&#34;&#34;
-
-        def __init__(
-                self,
-                url: str,
-                level: int = logging.NOTSET,
-                message_creator: MessageCreator = None,
-                username: str = None,
-                avatar_url: str = None,
-        ) -&gt; None:
-                super().__init__(url, level=level, message_creator=message_creator)
-                self.__username = username
-                self.__avatar_url = avatar_url
-
-        def transform_message(self, message: Dict[str, Any]) -&gt; Dict[str, Any]:
-                &#34;&#34;&#34;Replace the username and avatar fields set by the message creator (if any) with those provided to the handler (if any).
-
-                Args:
-                        message (Dict[str, Any]): The message provided by the message creator.
-
-                Returns:
-                        Dict[str, Any]: The transformed message.
-                &#34;&#34;&#34;
-                message = message.copy()
-                if self.__username:
-                        message[&#34;username&#34;] = self.__username
-                if self.__avatar_url:
-                        message[&#34;avatar_url&#34;] = self.__avatar_url
-                return message</code></pre>
-</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler">DiscordHandler</a></li>
@@ -173,26 +77,6 @@ and the filter list to empty.</p></div>
 <dt><code>Dict[str, Any]</code></dt>
 <dd>The transformed message.</dd>
 </dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def transform_message(self, message: Dict[str, Any]) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;Replace the username and avatar fields set by the message creator (if any) with those provided to the handler (if any).
-
-        Args:
-                message (Dict[str, Any]): The message provided by the message creator.
-
-        Returns:
-                Dict[str, Any]: The transformed message.
-        &#34;&#34;&#34;
-        message = message.copy()
-        if self.__username:
-                message[&#34;username&#34;] = self.__username
-        if self.__avatar_url:
-                message[&#34;avatar_url&#34;] = self.__avatar_url
-        return message</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Inherited members</h3>

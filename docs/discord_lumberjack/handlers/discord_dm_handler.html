@@ -22,67 +22,6 @@
 <h1 class="title">Module <code>discord_lumberjack.handlers.discord_dm_handler</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">import logging
-import requests
-from discord_lumberjack.message_creators import MessageCreator
-from .discord_channel_handler import DiscordChannelHandler
-
-
-class DiscordDMHandler(DiscordChannelHandler):
-        &#34;&#34;&#34;A logging handler that sends messages to a Discord  Direct Message Channel from a Bot.
-
-        Upon construction, this handler will attempt to create a DM channel with the user specified by the user_id argument. If this fails, the constructor will raise a ValueError.
-
-        Since a DM channel is a kind of channel, this handler is a subclass of DiscordChannelHandler.
-
-        Args:
-                bot_token (str): The authentication token of the Bot to send the message with.
-                user_id (int): The ID of the user to send the message to.
-                level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
-        &#34;&#34;&#34;
-
-        def __init__(
-                self,
-                bot_token: str,
-                user_id: int,
-                level: int = logging.NOTSET,
-                message_creator: MessageCreator = None,
-        ) -&gt; None:
-                super().__init__(
-                        bot_token,
-                        self.create_dm_channel(user_id, bot_token),
-                        level=level,
-                        message_creator=message_creator,
-                )
-
-        def create_dm_channel(self, user_id: int, bot_token: str) -&gt; int:
-                &#34;&#34;&#34;Create a DM channel through the discord API.
-
-                Args:
-                        user_id (int): The ID of the user to create a DM channel with.
-
-                Returns:
-                        int: The ID of the DM channel.
-
-                Raises:
-                        ValueError: If the bot was unable to create a DM channel with the user.
-                &#34;&#34;&#34;
-                r = requests.post(
-                        &#34;https://discord.com/api/users/@me/channels&#34;,
-                        json={&#34;recipient_id&#34;: user_id},
-                        headers={&#34;Authorization&#34;: f&#34;Bot {bot_token}&#34;},
-                )
-                if r.status_code &gt;= 300:
-                        raise ValueError(
-                                f&#34;Could not create DM channel with user {user_id}. Response: {r.text}&#34;
-                        )
-                return r.json()[&#34;id&#34;]</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -115,61 +54,6 @@ Direct Message Channel from a Bot.</p>
 </dl>
 <p>Initializes the instance - basically setting the formatter to None
 and the filter list to empty.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DiscordDMHandler(DiscordChannelHandler):
-        &#34;&#34;&#34;A logging handler that sends messages to a Discord  Direct Message Channel from a Bot.
-
-        Upon construction, this handler will attempt to create a DM channel with the user specified by the user_id argument. If this fails, the constructor will raise a ValueError.
-
-        Since a DM channel is a kind of channel, this handler is a subclass of DiscordChannelHandler.
-
-        Args:
-                bot_token (str): The authentication token of the Bot to send the message with.
-                user_id (int): The ID of the user to send the message to.
-                level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
-        &#34;&#34;&#34;
-
-        def __init__(
-                self,
-                bot_token: str,
-                user_id: int,
-                level: int = logging.NOTSET,
-                message_creator: MessageCreator = None,
-        ) -&gt; None:
-                super().__init__(
-                        bot_token,
-                        self.create_dm_channel(user_id, bot_token),
-                        level=level,
-                        message_creator=message_creator,
-                )
-
-        def create_dm_channel(self, user_id: int, bot_token: str) -&gt; int:
-                &#34;&#34;&#34;Create a DM channel through the discord API.
-
-                Args:
-                        user_id (int): The ID of the user to create a DM channel with.
-
-                Returns:
-                        int: The ID of the DM channel.
-
-                Raises:
-                        ValueError: If the bot was unable to create a DM channel with the user.
-                &#34;&#34;&#34;
-                r = requests.post(
-                        &#34;https://discord.com/api/users/@me/channels&#34;,
-                        json={&#34;recipient_id&#34;: user_id},
-                        headers={&#34;Authorization&#34;: f&#34;Bot {bot_token}&#34;},
-                )
-                if r.status_code &gt;= 300:
-                        raise ValueError(
-                                f&#34;Could not create DM channel with user {user_id}. Response: {r.text}&#34;
-                        )
-                return r.json()[&#34;id&#34;]</code></pre>
-</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler" href="discord_channel_handler.html#discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler">DiscordChannelHandler</a></li>
@@ -199,33 +83,6 @@ and the filter list to empty.</p></div>
 <dt><code>ValueError</code></dt>
 <dd>If the bot was unable to create a DM channel with the user.</dd>
 </dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def create_dm_channel(self, user_id: int, bot_token: str) -&gt; int:
-        &#34;&#34;&#34;Create a DM channel through the discord API.
-
-        Args:
-                user_id (int): The ID of the user to create a DM channel with.
-
-        Returns:
-                int: The ID of the DM channel.
-
-        Raises:
-                ValueError: If the bot was unable to create a DM channel with the user.
-        &#34;&#34;&#34;
-        r = requests.post(
-                &#34;https://discord.com/api/users/@me/channels&#34;,
-                json={&#34;recipient_id&#34;: user_id},
-                headers={&#34;Authorization&#34;: f&#34;Bot {bot_token}&#34;},
-        )
-        if r.status_code &gt;= 300:
-                raise ValueError(
-                        f&#34;Could not create DM channel with user {user_id}. Response: {r.text}&#34;
-                )
-        return r.json()[&#34;id&#34;]</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Inherited members</h3>
