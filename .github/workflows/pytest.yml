@@ -38,4 +38,4 @@ jobs:
           DISCORD_DM_ID: ${{ secrets.DISCORD_DM_ID }}
           DISCORD_UNTEXTABLE_DM_ID: ${{ secrets.DISCORD_UNTEXTABLE_DM_ID }}
         run: |
-          pytest
+          pytest tests

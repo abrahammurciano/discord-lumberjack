@@ -1,6 +1,6 @@
 from pytest import raises
 from logging import Logger
-from test.utils import assert_messages_sent
+from tests.utils import assert_messages_sent
 
 
 def test_handler(logger: Logger):

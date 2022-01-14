@@ -3,7 +3,7 @@ from typing import Callable
 import os
 import logging
 from logging import LogRecord, Logger
-from test import utils
+from tests import utils
 from dotenv import load_dotenv
 from discord_lumberjack.handlers import (
 	DiscordHandler,

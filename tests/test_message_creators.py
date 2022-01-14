@@ -2,7 +2,7 @@ from logging import LogRecord, Logger
 from typing import Callable
 from discord_lumberjack.message_creators import MessageCreator
 from discord_lumberjack.handlers import DiscordHandler
-from test.utils import assert_messages_sent
+from tests.utils import assert_messages_sent
 
 
 def test_message_creators(logger: Logger, function_that_raises: Callable[[], None]):
