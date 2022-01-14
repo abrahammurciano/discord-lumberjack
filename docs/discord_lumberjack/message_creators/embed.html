@@ -26,7 +26,8 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from typing import List, Optional, TypedDict
+<pre><code class="python">from typing import Any, Callable, Generator, List, Optional, Sequence, TypedDict
+from logging import LogRecord
 
 
 class EmbedAuthor(TypedDict):
@@ -43,30 +44,11 @@ class EmbedField(TypedDict):
 
 
 class EmbedFooter(TypedDict):
-        &#34;&#34;&#34;
-        An embed footer object.
-        &#34;&#34;&#34;
-
         text: Optional[str]
         icon_url: Optional[str]
 
 
 class EmbedImage(TypedDict):
-        &#34;&#34;&#34;
-        An embed image object.
-        &#34;&#34;&#34;
-
-        url: Optional[str]
-        proxy_url: Optional[str]
-        height: Optional[int]
-        width: Optional[int]
-
-
-class EmbedThumbnail(TypedDict):
-        &#34;&#34;&#34;
-        An embed thumbnail object.
-        &#34;&#34;&#34;
-
         url: Optional[str]
         proxy_url: Optional[str]
         height: Optional[int]
@@ -74,10 +56,6 @@ class EmbedThumbnail(TypedDict):
 
 
 class Embed(TypedDict):
-        &#34;&#34;&#34;
-        An embed object.
-        &#34;&#34;&#34;
-
         author: EmbedAuthor
         title: Optional[str]
         description: Optional[str]
@@ -87,7 +65,129 @@ class Embed(TypedDict):
         color: Optional[int]
         footer: EmbedFooter
         image: EmbedImage
-        thumbnail: EmbedThumbnail</code></pre>
+        thumbnail: EmbedImage
+
+
+def empty_embed(n_fields: int = 0) -&gt; Embed:
+        &#34;&#34;&#34;Create an empty embed with the specified number of empty fields.
+
+        Args:
+                n_fields (int, optional): The number of empty fields to initialise the embed with. Defaults to 0.
+
+        Returns:
+                Embed: An empty embed.
+        &#34;&#34;&#34;
+        return Embed(
+                author=EmbedAuthor(name=&#34;&#34;, url=None, icon_url=None, proxy_icon_url=None),
+                title=None,
+                description=None,
+                fields=[EmbedField(name=&#34;&#34;, value=&#34;&#34;, inline=False) for _ in range(n_fields)],
+                url=None,
+                timestamp=None,
+                color=None,
+                footer=EmbedFooter(text=None, icon_url=None),
+                image=EmbedImage(url=None, proxy_url=None, height=None, width=None),
+                thumbnail=EmbedImage(url=None, proxy_url=None, height=None, width=None),
+        )
+
+
+def embed_length(embed: Embed) -&gt; int:
+        &#34;&#34;&#34;Calculates the total length of the size-limited fields of an embed.
+
+        Args:
+                embed (Embed): The embed to calculate the length of.
+
+        Returns:
+                int: The total length of the size-limited fields of the embed.
+        &#34;&#34;&#34;
+        return sum(
+                len(string)
+                for string in (
+                        embed[&#34;title&#34;],
+                        embed[&#34;description&#34;],
+                        embed[&#34;footer&#34;][&#34;text&#34;],
+                        embed[&#34;author&#34;][&#34;name&#34;],
+                        *(field[&#34;name&#34;] for field in embed[&#34;fields&#34;]),
+                        *(field[&#34;value&#34;] for field in embed[&#34;fields&#34;]),
+                )
+                if string
+        )
+
+
+class EmbedFieldSetter:
+        &#34;&#34;&#34;Sets a field of an embed as specified by the user, providing a mechanism for not overflowing the embeds.
+
+        Args:
+                key_chain (Sequence[str | int]): A sequence of the keys (at least one) to index the embed with. For example if the value `v` should be set like this, `embed[&#34;fields&#34;][2][&#34;name&#34;] = v`, then the `key_chain` would be `(&#34;fields&#34;, 2, &#34;name&#34;)`.
+                get_value (Callable[[LogRecord], Any]): A function that gets a value to pass to `set_value` from a log record.
+                limit (int): The limit of the field this `EmbedFieldSetter` is setting.
+        &#34;&#34;&#34;
+
+        def __init__(
+                self,
+                key_chain: Sequence[str | int],
+                get_value: Callable[[LogRecord], Any],
+                limit: Optional[int] = None,
+        ):
+                self.__limit = limit
+                if not key_chain:
+                        raise ValueError(&#34;There must be at least one key in key_chain.&#34;)
+                self.__key_chain = key_chain[:-1]
+                self.__last_key = key_chain[-1]
+                self.__get_value = get_value
+
+        def set_field(
+                self,
+                embed: Embed,
+                record: LogRecord,
+                remainder: str = None,
+                new_embed_creator: Callable[[LogRecord], Embed] = None,
+                remaining_global_limit: Optional[int] = None,
+        ) -&gt; Generator[Embed, Any, None]:
+                &#34;&#34;&#34;[summary]
+
+                Args:
+                        embed (Embed): The embed to set the field in.
+                        record (LogRecord): The log record containing the data to set.
+                        remainder (str, optional): The text that should have been in the same field of the previous embed but couldn&#39;t be set due to length limitations. Defaults to None.
+                        new_embed_creator (Callable[[LogRecord], Embed], optional): A function that generates a new embed and sets whatever fields will persist across all the embeds that a log record is split up into. Defaults to a function that returns an empty embed.
+                        remaining_global_limit (Optional[int], optional): The number of remaining characters that can be added to limited fields of the embed before it is split up. Defaults to None.
+
+                Yields:
+                        Embed: This function yields any embeds which it creates.
+
+                Raises:
+                        KeyError: If the key chain is invalid.
+                &#34;&#34;&#34;
+                full_value = remainder or self.__get_value(record)
+                if full_value is None:
+                        return
+                msg_component: Any = embed
+                for key in self.__key_chain:
+                        msg_component = msg_component[key]
+                limit = (
+                        min(self.__limit, remaining_global_limit)
+                        if self.__limit and remaining_global_limit
+                        else self.__limit or remaining_global_limit
+                )
+                if isinstance(full_value, str):
+                        value = full_value[:limit]
+                        remainder = full_value[limit:] if limit is not None else None
+                else:
+                        value = full_value
+                        remainder = None
+                msg_component[self.__last_key] = value
+                if remainder:
+                        new_embed_creator = new_embed_creator or (lambda _: empty_embed())
+                        new_embed = new_embed_creator(record)
+                        yield new_embed
+                        yield from self.set_field(
+                                new_embed,
+                                record,
+                                remainder,
+                                new_embed_creator,
+                                remaining_global_limit - len(value) if remaining_global_limit else None,
+                        )</code></pre>
 </details>
 </section>
 <section>
@@ -95,6 +195,93 @@ class Embed(TypedDict):
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="discord_lumberjack.message_creators.embed.embed_length"><code class="name flex">
+<span>def <span class="ident">embed_length</span></span>(<span>embed: <a title="discord_lumberjack.message_creators.embed.Embed" href="#discord_lumberjack.message_creators.embed.Embed">Embed</a>) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates the total length of the size-limited fields of an embed.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>embed</code></strong> :&ensp;<code><a title="discord_lumberjack.message_creators.embed.Embed" href="#discord_lumberjack.message_creators.embed.Embed">Embed</a></code></dt>
+<dd>The embed to calculate the length of.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>The total length of the size-limited fields of the embed.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def embed_length(embed: Embed) -&gt; int:
+        &#34;&#34;&#34;Calculates the total length of the size-limited fields of an embed.
+
+        Args:
+                embed (Embed): The embed to calculate the length of.
+
+        Returns:
+                int: The total length of the size-limited fields of the embed.
+        &#34;&#34;&#34;
+        return sum(
+                len(string)
+                for string in (
+                        embed[&#34;title&#34;],
+                        embed[&#34;description&#34;],
+                        embed[&#34;footer&#34;][&#34;text&#34;],
+                        embed[&#34;author&#34;][&#34;name&#34;],
+                        *(field[&#34;name&#34;] for field in embed[&#34;fields&#34;]),
+                        *(field[&#34;value&#34;] for field in embed[&#34;fields&#34;]),
+                )
+                if string
+        )</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed.empty_embed"><code class="name flex">
+<span>def <span class="ident">empty_embed</span></span>(<span>n_fields: int = 0) ‑> <a title="discord_lumberjack.message_creators.embed.Embed" href="#discord_lumberjack.message_creators.embed.Embed">Embed</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create an empty embed with the specified number of empty fields.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>n_fields</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The number of empty fields to initialise the embed with. Defaults to 0.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="discord_lumberjack.message_creators.embed.Embed" href="#discord_lumberjack.message_creators.embed.Embed">Embed</a></code></dt>
+<dd>An empty embed.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def empty_embed(n_fields: int = 0) -&gt; Embed:
+        &#34;&#34;&#34;Create an empty embed with the specified number of empty fields.
+
+        Args:
+                n_fields (int, optional): The number of empty fields to initialise the embed with. Defaults to 0.
+
+        Returns:
+                Embed: An empty embed.
+        &#34;&#34;&#34;
+        return Embed(
+                author=EmbedAuthor(name=&#34;&#34;, url=None, icon_url=None, proxy_icon_url=None),
+                title=None,
+                description=None,
+                fields=[EmbedField(name=&#34;&#34;, value=&#34;&#34;, inline=False) for _ in range(n_fields)],
+                url=None,
+                timestamp=None,
+                color=None,
+                footer=EmbedFooter(text=None, icon_url=None),
+                image=EmbedImage(url=None, proxy_url=None, height=None, width=None),
+                thumbnail=EmbedImage(url=None, proxy_url=None, height=None, width=None),
+        )</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -104,16 +291,22 @@ class Embed(TypedDict):
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An embed object.</p></div>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Embed(TypedDict):
-        &#34;&#34;&#34;
-        An embed object.
-        &#34;&#34;&#34;
-
         author: EmbedAuthor
         title: Optional[str]
         description: Optional[str]
@@ -123,7 +316,7 @@ class Embed(TypedDict):
         color: Optional[int]
         footer: EmbedFooter
         image: EmbedImage
-        thumbnail: EmbedThumbnail</code></pre>
+        thumbnail: EmbedImage</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -155,7 +348,7 @@ class Embed(TypedDict):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="discord_lumberjack.message_creators.embed.Embed.thumbnail"><code class="name">var <span class="ident">thumbnail</span> : <a title="discord_lumberjack.message_creators.embed.EmbedThumbnail" href="#discord_lumberjack.message_creators.embed.EmbedThumbnail">EmbedThumbnail</a></code></dt>
+<dt id="discord_lumberjack.message_creators.embed.Embed.thumbnail"><code class="name">var <span class="ident">thumbnail</span> : <a title="discord_lumberjack.message_creators.embed.EmbedImage" href="#discord_lumberjack.message_creators.embed.EmbedImage">EmbedImage</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -268,21 +461,210 @@ dict(one=1, two=2)</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="discord_lumberjack.message_creators.embed.EmbedFieldSetter"><code class="flex name class">
+<span>class <span class="ident">EmbedFieldSetter</span></span>
+<span>(</span><span>key_chain: Sequence[str | int], get_value: Callable[[logging.LogRecord], Any], limit: Optional[int] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets a field of an embed as specified by the user, providing a mechanism for not overflowing the embeds.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>key_chain (Sequence[str | int]): A sequence of the keys (at least one) to index the embed with. For example if the value <code>v</code> should be set like this, <code>embed["fields"][2]["name"] = v</code>, then the <code>key_chain</code> would be <code>("fields", 2, "name")</code>.</dt>
+<dt><strong><code>get_value</code></strong> :&ensp;<code>Callable[[LogRecord], Any]</code></dt>
+<dd>A function that gets a value to pass to <code>set_value</code> from a log record.</dd>
+<dt><strong><code>limit</code></strong> :&ensp;<code>int</code></dt>
+<dd>The limit of the field this <code><a title="discord_lumberjack.message_creators.embed.EmbedFieldSetter" href="#discord_lumberjack.message_creators.embed.EmbedFieldSetter">EmbedFieldSetter</a></code> is setting.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class EmbedFieldSetter:
+        &#34;&#34;&#34;Sets a field of an embed as specified by the user, providing a mechanism for not overflowing the embeds.
+
+        Args:
+                key_chain (Sequence[str | int]): A sequence of the keys (at least one) to index the embed with. For example if the value `v` should be set like this, `embed[&#34;fields&#34;][2][&#34;name&#34;] = v`, then the `key_chain` would be `(&#34;fields&#34;, 2, &#34;name&#34;)`.
+                get_value (Callable[[LogRecord], Any]): A function that gets a value to pass to `set_value` from a log record.
+                limit (int): The limit of the field this `EmbedFieldSetter` is setting.
+        &#34;&#34;&#34;
+
+        def __init__(
+                self,
+                key_chain: Sequence[str | int],
+                get_value: Callable[[LogRecord], Any],
+                limit: Optional[int] = None,
+        ):
+                self.__limit = limit
+                if not key_chain:
+                        raise ValueError(&#34;There must be at least one key in key_chain.&#34;)
+                self.__key_chain = key_chain[:-1]
+                self.__last_key = key_chain[-1]
+                self.__get_value = get_value
+
+        def set_field(
+                self,
+                embed: Embed,
+                record: LogRecord,
+                remainder: str = None,
+                new_embed_creator: Callable[[LogRecord], Embed] = None,
+                remaining_global_limit: Optional[int] = None,
+        ) -&gt; Generator[Embed, Any, None]:
+                &#34;&#34;&#34;[summary]
+
+                Args:
+                        embed (Embed): The embed to set the field in.
+                        record (LogRecord): The log record containing the data to set.
+                        remainder (str, optional): The text that should have been in the same field of the previous embed but couldn&#39;t be set due to length limitations. Defaults to None.
+                        new_embed_creator (Callable[[LogRecord], Embed], optional): A function that generates a new embed and sets whatever fields will persist across all the embeds that a log record is split up into. Defaults to a function that returns an empty embed.
+                        remaining_global_limit (Optional[int], optional): The number of remaining characters that can be added to limited fields of the embed before it is split up. Defaults to None.
+
+                Yields:
+                        Embed: This function yields any embeds which it creates.
+
+                Raises:
+                        KeyError: If the key chain is invalid.
+                &#34;&#34;&#34;
+                full_value = remainder or self.__get_value(record)
+                if full_value is None:
+                        return
+                msg_component: Any = embed
+                for key in self.__key_chain:
+                        msg_component = msg_component[key]
+                limit = (
+                        min(self.__limit, remaining_global_limit)
+                        if self.__limit and remaining_global_limit
+                        else self.__limit or remaining_global_limit
+                )
+                if isinstance(full_value, str):
+                        value = full_value[:limit]
+                        remainder = full_value[limit:] if limit is not None else None
+                else:
+                        value = full_value
+                        remainder = None
+                msg_component[self.__last_key] = value
+                if remainder:
+                        new_embed_creator = new_embed_creator or (lambda _: empty_embed())
+                        new_embed = new_embed_creator(record)
+                        yield new_embed
+                        yield from self.set_field(
+                                new_embed,
+                                record,
+                                remainder,
+                                new_embed_creator,
+                                remaining_global_limit - len(value) if remaining_global_limit else None,
+                        )</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="discord_lumberjack.message_creators.embed.EmbedFieldSetter.set_field"><code class="name flex">
+<span>def <span class="ident">set_field</span></span>(<span>self, embed: <a title="discord_lumberjack.message_creators.embed.Embed" href="#discord_lumberjack.message_creators.embed.Embed">Embed</a>, record: logging.LogRecord, remainder: str = None, new_embed_creator: Callable[[logging.LogRecord], <a title="discord_lumberjack.message_creators.embed.Embed" href="#discord_lumberjack.message_creators.embed.Embed">Embed</a>] = None, remaining_global_limit: Optional[int] = None) ‑> Generator[<a title="discord_lumberjack.message_creators.embed.Embed" href="#discord_lumberjack.message_creators.embed.Embed">Embed</a>, Any, None]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>[summary]</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>embed</code></strong> :&ensp;<code><a title="discord_lumberjack.message_creators.embed.Embed" href="#discord_lumberjack.message_creators.embed.Embed">Embed</a></code></dt>
+<dd>The embed to set the field in.</dd>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The log record containing the data to set.</dd>
+<dt><strong><code>remainder</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The text that should have been in the same field of the previous embed but couldn't be set due to length limitations. Defaults to None.</dd>
+<dt><strong><code>new_embed_creator</code></strong> :&ensp;<code>Callable[[LogRecord], <a title="discord_lumberjack.message_creators.embed.Embed" href="#discord_lumberjack.message_creators.embed.Embed">Embed</a>]</code>, optional</dt>
+<dd>A function that generates a new embed and sets whatever fields will persist across all the embeds that a log record is split up into. Defaults to a function that returns an empty embed.</dd>
+<dt><strong><code>remaining_global_limit</code></strong> :&ensp;<code>Optional[int]</code>, optional</dt>
+<dd>The number of remaining characters that can be added to limited fields of the embed before it is split up. Defaults to None.</dd>
+</dl>
+<h2 id="yields">Yields</h2>
+<dl>
+<dt><code><a title="discord_lumberjack.message_creators.embed.Embed" href="#discord_lumberjack.message_creators.embed.Embed">Embed</a></code></dt>
+<dd>This function yields any embeds which it creates.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>KeyError</code></dt>
+<dd>If the key chain is invalid.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_field(
+        self,
+        embed: Embed,
+        record: LogRecord,
+        remainder: str = None,
+        new_embed_creator: Callable[[LogRecord], Embed] = None,
+        remaining_global_limit: Optional[int] = None,
+) -&gt; Generator[Embed, Any, None]:
+        &#34;&#34;&#34;[summary]
+
+        Args:
+                embed (Embed): The embed to set the field in.
+                record (LogRecord): The log record containing the data to set.
+                remainder (str, optional): The text that should have been in the same field of the previous embed but couldn&#39;t be set due to length limitations. Defaults to None.
+                new_embed_creator (Callable[[LogRecord], Embed], optional): A function that generates a new embed and sets whatever fields will persist across all the embeds that a log record is split up into. Defaults to a function that returns an empty embed.
+                remaining_global_limit (Optional[int], optional): The number of remaining characters that can be added to limited fields of the embed before it is split up. Defaults to None.
+
+        Yields:
+                Embed: This function yields any embeds which it creates.
+
+        Raises:
+                KeyError: If the key chain is invalid.
+        &#34;&#34;&#34;
+        full_value = remainder or self.__get_value(record)
+        if full_value is None:
+                return
+        msg_component: Any = embed
+        for key in self.__key_chain:
+                msg_component = msg_component[key]
+        limit = (
+                min(self.__limit, remaining_global_limit)
+                if self.__limit and remaining_global_limit
+                else self.__limit or remaining_global_limit
+        )
+        if isinstance(full_value, str):
+                value = full_value[:limit]
+                remainder = full_value[limit:] if limit is not None else None
+        else:
+                value = full_value
+                remainder = None
+        msg_component[self.__last_key] = value
+        if remainder:
+                new_embed_creator = new_embed_creator or (lambda _: empty_embed())
+                new_embed = new_embed_creator(record)
+                yield new_embed
+                yield from self.set_field(
+                        new_embed,
+                        record,
+                        remainder,
+                        new_embed_creator,
+                        remaining_global_limit - len(value) if remaining_global_limit else None,
+                )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="discord_lumberjack.message_creators.embed.EmbedFooter"><code class="flex name class">
 <span>class <span class="ident">EmbedFooter</span></span>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An embed footer object.</p></div>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class EmbedFooter(TypedDict):
-        &#34;&#34;&#34;
-        An embed footer object.
-        &#34;&#34;&#34;
-
         text: Optional[str]
         icon_url: Optional[str]</code></pre>
 </details>
@@ -307,16 +689,22 @@ dict(one=1, two=2)</p></div>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An embed image object.</p></div>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class EmbedImage(TypedDict):
-        &#34;&#34;&#34;
-        An embed image object.
-        &#34;&#34;&#34;
-
         url: Optional[str]
         proxy_url: Optional[str]
         height: Optional[int]
@@ -346,50 +734,6 @@ dict(one=1, two=2)</p></div>
 </dd>
 </dl>
 </dd>
-<dt id="discord_lumberjack.message_creators.embed.EmbedThumbnail"><code class="flex name class">
-<span>class <span class="ident">EmbedThumbnail</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>An embed thumbnail object.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class EmbedThumbnail(TypedDict):
-        &#34;&#34;&#34;
-        An embed thumbnail object.
-        &#34;&#34;&#34;
-
-        url: Optional[str]
-        proxy_url: Optional[str]
-        height: Optional[int]
-        width: Optional[int]</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.dict</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="discord_lumberjack.message_creators.embed.EmbedThumbnail.height"><code class="name">var <span class="ident">height</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="discord_lumberjack.message_creators.embed.EmbedThumbnail.proxy_url"><code class="name">var <span class="ident">proxy_url</span> : Optional[str]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="discord_lumberjack.message_creators.embed.EmbedThumbnail.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="discord_lumberjack.message_creators.embed.EmbedThumbnail.width"><code class="name">var <span class="ident">width</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
 </dl>
 </section>
 </article>
@@ -402,6 +746,12 @@ dict(one=1, two=2)</p></div>
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="discord_lumberjack.message_creators" href="index.html">discord_lumberjack.message_creators</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="discord_lumberjack.message_creators.embed.embed_length" href="#discord_lumberjack.message_creators.embed.embed_length">embed_length</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed.empty_embed" href="#discord_lumberjack.message_creators.embed.empty_embed">empty_embed</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -439,6 +789,12 @@ dict(one=1, two=2)</p></div>
 </ul>
 </li>
 <li>
+<h4><code><a title="discord_lumberjack.message_creators.embed.EmbedFieldSetter" href="#discord_lumberjack.message_creators.embed.EmbedFieldSetter">EmbedFieldSetter</a></code></h4>
+<ul class="">
+<li><code><a title="discord_lumberjack.message_creators.embed.EmbedFieldSetter.set_field" href="#discord_lumberjack.message_creators.embed.EmbedFieldSetter.set_field">set_field</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="discord_lumberjack.message_creators.embed.EmbedFooter" href="#discord_lumberjack.message_creators.embed.EmbedFooter">EmbedFooter</a></code></h4>
 <ul class="">
 <li><code><a title="discord_lumberjack.message_creators.embed.EmbedFooter.icon_url" href="#discord_lumberjack.message_creators.embed.EmbedFooter.icon_url">icon_url</a></code></li>
@@ -452,15 +808,6 @@ dict(one=1, two=2)</p></div>
 <li><code><a title="discord_lumberjack.message_creators.embed.EmbedImage.proxy_url" href="#discord_lumberjack.message_creators.embed.EmbedImage.proxy_url">proxy_url</a></code></li>
 <li><code><a title="discord_lumberjack.message_creators.embed.EmbedImage.url" href="#discord_lumberjack.message_creators.embed.EmbedImage.url">url</a></code></li>
 <li><code><a title="discord_lumberjack.message_creators.embed.EmbedImage.width" href="#discord_lumberjack.message_creators.embed.EmbedImage.width">width</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="discord_lumberjack.message_creators.embed.EmbedThumbnail" href="#discord_lumberjack.message_creators.embed.EmbedThumbnail">EmbedThumbnail</a></code></h4>
-<ul class="">
-<li><code><a title="discord_lumberjack.message_creators.embed.EmbedThumbnail.height" href="#discord_lumberjack.message_creators.embed.EmbedThumbnail.height">height</a></code></li>
-<li><code><a title="discord_lumberjack.message_creators.embed.EmbedThumbnail.proxy_url" href="#discord_lumberjack.message_creators.embed.EmbedThumbnail.proxy_url">proxy_url</a></code></li>
-<li><code><a title="discord_lumberjack.message_creators.embed.EmbedThumbnail.url" href="#discord_lumberjack.message_creators.embed.EmbedThumbnail.url">url</a></code></li>
-<li><code><a title="discord_lumberjack.message_creators.embed.EmbedThumbnail.width" href="#discord_lumberjack.message_creators.embed.EmbedThumbnail.width">width</a></code></li>
 </ul>
 </li>
 </ul>
