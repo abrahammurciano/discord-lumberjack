@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>discord_lumberjack.message_creators.basic_message_creator API documentation</title>
+<title>discord_lumberjack.message_creators.chunks API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,45 +19,20 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>discord_lumberjack.message_creators.basic_message_creator</code></h1>
+<h1 class="title">Module <code>discord_lumberjack.message_creators.chunks</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from logging import LogRecord
-from typing import Callable, Iterable
-from .message_creator import MessageCreator
-from .chunks import chunks
+<pre><code class="python">from typing import Iterable, Sequence, TypeVar
+
+T = TypeVar(&#34;T&#34;)
 
 
-class BasicMessageCreator(MessageCreator):
-        &#34;&#34;&#34;
-        This class creates messages displayed in plain text.
-
-        Args:
-                monospace (bool, optional): Whether or not to format the messages as monospace. Defaults to True.
-        &#34;&#34;&#34;
-
-        def __init__(self, monospace: bool = True) -&gt; None:
-                super().__init__()
-                if monospace:
-                        self.__prefix = &#34;```&#34;
-                        self.__suffix = &#34;```&#34;
-                        self.__content_limit = 1994
-                else:
-                        self.__prefix = &#34;&#34;
-                        self.__suffix = &#34;&#34;
-                        self.__content_limit = 2000
-
-        def messages(
-                self, record: LogRecord, format_func: Callable[[LogRecord], str]
-        ) -&gt; Iterable[dict]:
-                return (
-                        {&#34;content&#34;: self.__prefix + &#34;&#34;.join(chunk) + self.__suffix}
-                        for chunk in chunks(format_func(record), self.__content_limit)
-                )</code></pre>
+def chunks(seq: Sequence[T], chunk_size: int) -&gt; Iterable[Sequence[T]]:
+        return (seq[pos : pos + chunk_size] for pos in range(0, len(seq), chunk_size))</code></pre>
 </details>
 </section>
 <section>
@@ -65,67 +40,24 @@ class BasicMessageCreator(MessageCreator):
 <section>
 </section>
 <section>
-</section>
-<section>
-<h2 class="section-title" id="header-classes">Classes</h2>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="discord_lumberjack.message_creators.basic_message_creator.BasicMessageCreator"><code class="flex name class">
-<span>class <span class="ident">BasicMessageCreator</span></span>
-<span>(</span><span>monospace: bool = True)</span>
+<dt id="discord_lumberjack.message_creators.chunks.chunks"><code class="name flex">
+<span>def <span class="ident">chunks</span></span>(<span>seq: Sequence[~T], chunk_size: int) ‑> Iterable[Sequence[~T]]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class creates messages displayed in plain text.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>monospace</code></strong> :&ensp;<code>bool</code>, optional</dt>
-<dd>Whether or not to format the messages as monospace. Defaults to True.</dd>
-</dl></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class BasicMessageCreator(MessageCreator):
-        &#34;&#34;&#34;
-        This class creates messages displayed in plain text.
-
-        Args:
-                monospace (bool, optional): Whether or not to format the messages as monospace. Defaults to True.
-        &#34;&#34;&#34;
-
-        def __init__(self, monospace: bool = True) -&gt; None:
-                super().__init__()
-                if monospace:
-                        self.__prefix = &#34;```&#34;
-                        self.__suffix = &#34;```&#34;
-                        self.__content_limit = 1994
-                else:
-                        self.__prefix = &#34;&#34;
-                        self.__suffix = &#34;&#34;
-                        self.__content_limit = 2000
-
-        def messages(
-                self, record: LogRecord, format_func: Callable[[LogRecord], str]
-        ) -&gt; Iterable[dict]:
-                return (
-                        {&#34;content&#34;: self.__prefix + &#34;&#34;.join(chunk) + self.__suffix}
-                        for chunk in chunks(format_func(record), self.__content_limit)
-                )</code></pre>
+<pre><code class="python">def chunks(seq: Sequence[T], chunk_size: int) -&gt; Iterable[Sequence[T]]:
+        return (seq[pos : pos + chunk_size] for pos in range(0, len(seq), chunk_size))</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></li>
-<li>abc.ABC</li>
-</ul>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></b></code>:
-<ul class="hlist">
-<li><code><a title="discord_lumberjack.message_creators.message_creator.MessageCreator.messages" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator.messages">messages</a></code></li>
-</ul>
-</li>
-</ul>
 </dd>
 </dl>
+</section>
+<section>
 </section>
 </article>
 <nav id="sidebar">
@@ -139,11 +71,9 @@ class BasicMessageCreator(MessageCreator):
 <li><code><a title="discord_lumberjack.message_creators" href="index.html">discord_lumberjack.message_creators</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-classes">Classes</a></h3>
-<ul>
-<li>
-<h4><code><a title="discord_lumberjack.message_creators.basic_message_creator.BasicMessageCreator" href="#discord_lumberjack.message_creators.basic_message_creator.BasicMessageCreator">BasicMessageCreator</a></code></h4>
-</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="discord_lumberjack.message_creators.chunks.chunks" href="#discord_lumberjack.message_creators.chunks.chunks">chunks</a></code></li>
 </ul>
 </li>
 </ul>

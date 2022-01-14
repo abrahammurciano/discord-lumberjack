@@ -86,7 +86,7 @@ __all__ = (
 <dl>
 <dt id="discord_lumberjack.handlers.DiscordChannelHandler"><code class="flex name class">
 <span>class <span class="ident">DiscordChannelHandler</span></span>
-<span>(</span><span>bot_token: str, channel_id: int, level: int = 0, msg_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None)</span>
+<span>(</span><span>bot_token: str, channel_id: int, level: int = 0, message_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A logging handler that sends messages to a Discord Channel from a Bot.</p>
@@ -98,7 +98,7 @@ __all__ = (
 <dd>The ID of the Channel to send the message to.</dd>
 <dt><strong><code>level</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>The level at which to log. Defaults to logging.NOTSET.</dd>
-<dt><strong><code>msg_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
+<dt><strong><code>message_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
 <dd>An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.</dd>
 </dl>
 <p>Initializes the instance - basically setting the formatter to None
@@ -114,7 +114,7 @@ and the filter list to empty.</p></div>
                 bot_token (str): The authentication token of the Bot to send the message with.
                 channel_id (int): The ID of the Channel to send the message to.
                 level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
         &#34;&#34;&#34;
 
         def __init__(
@@ -122,26 +122,13 @@ and the filter list to empty.</p></div>
                 bot_token: str,
                 channel_id: int,
                 level: int = logging.NOTSET,
-                msg_creator: MessageCreator = None,
+                message_creator: MessageCreator = None,
         ) -&gt; None:
                 super().__init__(
                         f&#34;https://discord.com/api/channels/{channel_id}/messages&#34;,
                         level=level,
-                        message_creator=msg_creator,
+                        message_creator=message_creator,
                         http_headers={&#34;Authorization&#34;: f&#34;Bot {bot_token}&#34;},
-                        allowed_fields=(
-                                &#34;content&#34;,
-                                &#34;tts&#34;,
-                                &#34;embeds&#34;,
-                                &#34;embed&#34;,
-                                &#34;allowed_mentions&#34;,
-                                &#34;message_reference&#34;,
-                                &#34;components&#34;,
-                                &#34;sticker_ids&#34;,
-                                &#34;files&#34;,
-                                &#34;payload_json&#34;,
-                                &#34;attachments&#34;,
-                        ),
                 )</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -159,9 +146,7 @@ and the filter list to empty.</p></div>
 <li><code><b><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler">DiscordHandler</a></b></code>:
 <ul class="hlist">
 <li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.emit" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.emit">emit</a></code></li>
-<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.filter_fields" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.filter_fields">filter_fields</a></code></li>
 <li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages">prepare_messages</a></code></li>
-<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.send_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.send_messages">send_messages</a></code></li>
 <li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.transform_message" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.transform_message">transform_message</a></code></li>
 </ul>
 </li>
@@ -169,7 +154,7 @@ and the filter list to empty.</p></div>
 </dd>
 <dt id="discord_lumberjack.handlers.DiscordDMHandler"><code class="flex name class">
 <span>class <span class="ident">DiscordDMHandler</span></span>
-<span>(</span><span>bot_token: str, user_id: int, level: int = 0, msg_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None)</span>
+<span>(</span><span>bot_token: str, user_id: int, level: int = 0, message_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A logging handler that sends messages to a Discord
@@ -184,7 +169,7 @@ Direct Message Channel from a Bot.</p>
 <dd>The ID of the user to send the message to.</dd>
 <dt><strong><code>level</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>The level at which to log. Defaults to logging.NOTSET.</dd>
-<dt><strong><code>msg_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
+<dt><strong><code>message_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
 <dd>An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.</dd>
 </dl>
 <p>Initializes the instance - basically setting the formatter to None
@@ -204,7 +189,7 @@ and the filter list to empty.</p></div>
                 bot_token (str): The authentication token of the Bot to send the message with.
                 user_id (int): The ID of the user to send the message to.
                 level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
         &#34;&#34;&#34;
 
         def __init__(
@@ -212,13 +197,13 @@ and the filter list to empty.</p></div>
                 bot_token: str,
                 user_id: int,
                 level: int = logging.NOTSET,
-                msg_creator: MessageCreator = None,
+                message_creator: MessageCreator = None,
         ) -&gt; None:
                 super().__init__(
                         bot_token,
                         self.create_dm_channel(user_id, bot_token),
                         level=level,
-                        msg_creator=msg_creator,
+                        message_creator=message_creator,
                 )
 
         def create_dm_channel(self, user_id: int, bot_token: str) -&gt; int:
@@ -307,9 +292,7 @@ and the filter list to empty.</p></div>
 <li><code><b><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler" href="discord_channel_handler.html#discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler">DiscordChannelHandler</a></b></code>:
 <ul class="hlist">
 <li><code><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler.emit" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.emit">emit</a></code></li>
-<li><code><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler.filter_fields" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.filter_fields">filter_fields</a></code></li>
 <li><code><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler.prepare_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages">prepare_messages</a></code></li>
-<li><code><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler.send_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.send_messages">send_messages</a></code></li>
 <li><code><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler.transform_message" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.transform_message">transform_message</a></code></li>
 </ul>
 </li>
@@ -317,7 +300,7 @@ and the filter list to empty.</p></div>
 </dd>
 <dt id="discord_lumberjack.handlers.DiscordHandler"><code class="flex name class">
 <span>class <span class="ident">DiscordHandler</span></span>
-<span>(</span><span>url: str, level: int = 0, message_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None, http_headers: Mapping[str, Any] = None, allowed_fields: Iterable[str] = None)</span>
+<span>(</span><span>url: str, level: int = 0, message_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None, http_headers: Mapping[str, Any] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A base class for logging handlers that send messages to Discord.</p>
@@ -327,12 +310,10 @@ and the filter list to empty.</p></div>
 <dd>The URL to make the request to. This can be a webhook URL, a channel URL, a direct message URL, or any other URL that Discord supports.</dd>
 <dt><strong><code>level</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>The level at which to log. Defaults to logging.NOTSET.</dd>
-<dt><strong><code>msg_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
+<dt><strong><code>message_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
 <dd>An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.</dd>
 <dt><strong><code>http_headers</code></strong> :&ensp;<code>Mapping[str, Any]</code>, optional</dt>
 <dd>A mapping of HTTP headers to send with the request. Defaults to an empty mapping.</dd>
-<dt><strong><code>allowed_fields</code></strong> :&ensp;<code>Iterable[str]</code>, optional</dt>
-<dd>A list of fields that the provided URL accepts. All other fields provided by the message creator will be removed. If None, all fields will be included. Defaults to None.</dd>
 </dl>
 <p>Initializes the instance - basically setting the formatter to None
 and the filter list to empty.</p></div>
@@ -346,9 +327,8 @@ and the filter list to empty.</p></div>
         Args:
                 url (str): The URL to make the request to. This can be a webhook URL, a channel URL, a direct message URL, or any other URL that Discord supports.
                 level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
                 http_headers (Mapping[str, Any], optional): A mapping of HTTP headers to send with the request. Defaults to an empty mapping.
-                allowed_fields (Iterable[str], optional): A list of fields that the provided URL accepts. All other fields provided by the message creator will be removed. If None, all fields will be included. Defaults to None.
         &#34;&#34;&#34;
 
         def __init__(
@@ -357,14 +337,18 @@ and the filter list to empty.</p></div>
                 level: int = logging.NOTSET,
                 message_creator: MessageCreator = None,
                 http_headers: Mapping[str, Any] = None,
-                allowed_fields: Iterable[str] = None,
         ) -&gt; None:
                 super().__init__(level=level)
                 self.__url = url
                 self.__session = requests.Session()
                 self.__message_creator = message_creator or _default_message_creator
                 self.__session.headers.update(http_headers or {})
-                self.__allowed_fields = allowed_fields
+                self.__queue: Queue[logging.LogRecord] = Queue()
+                self.__thread = threading.Thread(
+                        target=self.__consume, name=&#34;DiscordLumberjack&#34;, daemon=True
+                )
+                self.__thread.start()
+                self.__exception: Optional[Exception] = None
 
         def emit(self, record: logging.LogRecord) -&gt; None:
                 &#34;&#34;&#34;Log the messages to Discord.
@@ -374,13 +358,7 @@ and the filter list to empty.</p></div>
                 Args:
                         record (logging.LogRecord): The log record to send.
                 &#34;&#34;&#34;
-                try:
-                        thread = threading.Thread(
-                                target=self.send_messages, name=&#34;DiscordLumberjack&#34;, args=(record,)
-                        )
-                        thread.start()
-                except Exception:
-                        self.handleError(record)
+                self.__queue.put(record)
 
         def transform_message(self, message: Dict[str, Any]) -&gt; Dict[str, Any]:
                 &#34;&#34;&#34;Transform a message before sending it to Discord.
@@ -397,25 +375,10 @@ and the filter list to empty.</p></div>
                 &#34;&#34;&#34;
                 return message
 
-        def filter_fields(self, message: Mapping[str, Any]) -&gt; Dict[str, Any]:
-                &#34;&#34;&#34;Remove any fields that are not in the allowed fields list, returning a new message with only allowed fields.
-
-                Args:
-                        message (Mapping[str, Any]): The message as provided by the message creator.
-
-                Returns:
-                        Dict[str, Any]: The message after removing any fields that are not in the allowed fields list.
-                &#34;&#34;&#34;
-                return {
-                        field: message[field]
-                        for field in message
-                        if self.__allowed_fields is None or field in self.__allowed_fields
-                }
-
         def prepare_messages(self, record: logging.LogRecord) -&gt; Iterable[Dict[str, Any]]:
                 &#34;&#34;&#34;Given a log record, obtain all the message objects that will be sent to Discord.
 
-                This method gets all the messages from the message creator, calls transform_message, which may be overridden by subclasses to transform each message as desired by each handler, and then filters out any fields that are not in the allowed fields list.
+                This method gets all the messages from the message creator and calls transform_message which may be overridden by subclasses to transform each message as desired by each handler.
 
                 Args:
                         record (logging.LogRecord): The log record to send.
@@ -424,25 +387,66 @@ and the filter list to empty.</p></div>
                         Iterable[Dict[str, Any]]: The messages to send to Discord.
                 &#34;&#34;&#34;
                 return (
-                        self.filter_fields(self.transform_message(msg))
+                        self.transform_message(msg)
                         for msg in self.__message_creator.messages(record, self.format)
                 )
 
-        def send_messages(self, record: logging.LogRecord):
-                &#34;&#34;&#34;Send the messages returned by prepare_messages to Discord.
+        def __consume(self) -&gt; None:
+                &#34;&#34;&#34;In an infinite loop, consume a log record from the queue, convert it to its message objects, and send them to Discord.&#34;&#34;&#34;
+                while True:
+                        try:
+                                record = self.__queue.get()
+                                for msg in self.prepare_messages(record):
+                                        self.__send_message(msg)
+                        except Exception as e:
+                                self.__exception = e
+                                self.handleError(record)
+                        finally:
+                                self.__queue.task_done()
+
+        def __send_message(self, message: Mapping[str, Any]) -&gt; None:
+                &#34;&#34;&#34;Send a message to Discord.
 
                 Args:
-                        record (logging.LogRecord): The log record to send messages about
+                        message (Mapping[str, Any]): The message object to send.
+                &#34;&#34;&#34;
+                response = self.__retry_send(message)
+                if response.status_code &gt;= 300:
+                        raise RuntimeError(f&#34;Failed to send message to Discord: {response.text}&#34;)
+
+        def __retry_send(
+                self, message: Mapping[str, Any], initial_interval=0.1
+        ) -&gt; requests.Response:
+                &#34;&#34;&#34;Send a message to Discord.
+
+                If it was rejected due to &#34;too many requests&#34;, keep trying with increasing intervals until it succeeds. This method is blocking.
+
+                Args:
+                        message (Mapping[str, Any]): The message object to send.
+                        initial_interval (float, optional): The initial interval to wait before retrying. Defaults to 0.1.
+
+                Returns:
+                        requests.Response: The response to the HTTP request.
+                &#34;&#34;&#34;
+                retry_interval = initial_interval
+                response = self.__session.post(self.__url, json=message)
+                while response.status_code == 429:
+                        time.sleep(retry_interval)
+                        retry_interval *= 2
+                        response = self.__session.post(self.__url, json=message)
+                return response
+
+        def _assert_messages_sent(self):
+                &#34;&#34;&#34;Block until all logged messages are sent to Discord.
+
+                If an exception was raised while sending a message, it will be re-raised. This method exists purely for testing purposes.
 
                 Raises:
-                        RuntimeError: If the request to Discord was unsuccessful.
+                        Exception: If an exception was raised while sending a message.
                 &#34;&#34;&#34;
-                for msg in self.prepare_messages(record):
-                        response = self.__session.post(self.__url, json=msg)
-                        if response.status_code &gt;= 300:
-                                raise RuntimeError(
-                                        f&#34;Failed to send message to Discord: {response.text}&#34;
-                                )</code></pre>
+                self.__queue.join()
+                if self.__exception:
+                        raise self.__exception</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -479,48 +483,7 @@ and the filter list to empty.</p></div>
         Args:
                 record (logging.LogRecord): The log record to send.
         &#34;&#34;&#34;
-        try:
-                thread = threading.Thread(
-                        target=self.send_messages, name=&#34;DiscordLumberjack&#34;, args=(record,)
-                )
-                thread.start()
-        except Exception:
-                self.handleError(record)</code></pre>
-</details>
-</dd>
-<dt id="discord_lumberjack.handlers.DiscordHandler.filter_fields"><code class="name flex">
-<span>def <span class="ident">filter_fields</span></span>(<span>self, message: Mapping[str, Any]) ‑> Dict[str, Any]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Remove any fields that are not in the allowed fields list, returning a new message with only allowed fields.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>message</code></strong> :&ensp;<code>Mapping[str, Any]</code></dt>
-<dd>The message as provided by the message creator.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>Dict[str, Any]</code></dt>
-<dd>The message after removing any fields that are not in the allowed fields list.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def filter_fields(self, message: Mapping[str, Any]) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;Remove any fields that are not in the allowed fields list, returning a new message with only allowed fields.
-
-        Args:
-                message (Mapping[str, Any]): The message as provided by the message creator.
-
-        Returns:
-                Dict[str, Any]: The message after removing any fields that are not in the allowed fields list.
-        &#34;&#34;&#34;
-        return {
-                field: message[field]
-                for field in message
-                if self.__allowed_fields is None or field in self.__allowed_fields
-        }</code></pre>
+        self.__queue.put(record)</code></pre>
 </details>
 </dd>
 <dt id="discord_lumberjack.handlers.DiscordHandler.prepare_messages"><code class="name flex">
@@ -528,7 +491,7 @@ and the filter list to empty.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Given a log record, obtain all the message objects that will be sent to Discord.</p>
-<p>This method gets all the messages from the message creator, calls transform_message, which may be overridden by subclasses to transform each message as desired by each handler, and then filters out any fields that are not in the allowed fields list.</p>
+<p>This method gets all the messages from the message creator and calls transform_message which may be overridden by subclasses to transform each message as desired by each handler.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>record</code></strong> :&ensp;<code>logging.LogRecord</code></dt>
@@ -546,7 +509,7 @@ and the filter list to empty.</p></div>
 <pre><code class="python">def prepare_messages(self, record: logging.LogRecord) -&gt; Iterable[Dict[str, Any]]:
         &#34;&#34;&#34;Given a log record, obtain all the message objects that will be sent to Discord.
 
-        This method gets all the messages from the message creator, calls transform_message, which may be overridden by subclasses to transform each message as desired by each handler, and then filters out any fields that are not in the allowed fields list.
+        This method gets all the messages from the message creator and calls transform_message which may be overridden by subclasses to transform each message as desired by each handler.
 
         Args:
                 record (logging.LogRecord): The log record to send.
@@ -555,45 +518,9 @@ and the filter list to empty.</p></div>
                 Iterable[Dict[str, Any]]: The messages to send to Discord.
         &#34;&#34;&#34;
         return (
-                self.filter_fields(self.transform_message(msg))
+                self.transform_message(msg)
                 for msg in self.__message_creator.messages(record, self.format)
         )</code></pre>
-</details>
-</dd>
-<dt id="discord_lumberjack.handlers.DiscordHandler.send_messages"><code class="name flex">
-<span>def <span class="ident">send_messages</span></span>(<span>self, record: logging.LogRecord)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Send the messages returned by prepare_messages to Discord.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>record</code></strong> :&ensp;<code>logging.LogRecord</code></dt>
-<dd>The log record to send messages about</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>RuntimeError</code></dt>
-<dd>If the request to Discord was unsuccessful.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def send_messages(self, record: logging.LogRecord):
-        &#34;&#34;&#34;Send the messages returned by prepare_messages to Discord.
-
-        Args:
-                record (logging.LogRecord): The log record to send messages about
-
-        Raises:
-                RuntimeError: If the request to Discord was unsuccessful.
-        &#34;&#34;&#34;
-        for msg in self.prepare_messages(record):
-                response = self.__session.post(self.__url, json=msg)
-                if response.status_code &gt;= 300:
-                        raise RuntimeError(
-                                f&#34;Failed to send message to Discord: {response.text}&#34;
-                        )</code></pre>
 </details>
 </dd>
 <dt id="discord_lumberjack.handlers.DiscordHandler.transform_message"><code class="name flex">
@@ -637,7 +564,7 @@ and the filter list to empty.</p></div>
 </dd>
 <dt id="discord_lumberjack.handlers.DiscordWebhookHandler"><code class="flex name class">
 <span>class <span class="ident">DiscordWebhookHandler</span></span>
-<span>(</span><span>url: str, level: int = 0, msg_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None, username: str = None, avatar_url: str = None)</span>
+<span>(</span><span>url: str, level: int = 0, message_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None, username: str = None, avatar_url: str = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A logging handler that sends messages to a Discord webhook.</p>
@@ -648,7 +575,7 @@ and the filter list to empty.</p></div>
 <dd>The URL to make the request to. This must be a webhook URL.</dd>
 <dt><strong><code>level</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>The level at which to log. Defaults to logging.NOTSET.</dd>
-<dt><strong><code>msg_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
+<dt><strong><code>message_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
 <dd>An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.</dd>
 <dt><strong><code>username</code></strong> :&ensp;<code>str</code>, optional</dt>
 <dd>The username to use when sending messages. Defaults to None.</dd>
@@ -669,7 +596,7 @@ and the filter list to empty.</p></div>
         Args:
                 url (str): The URL to make the request to. This must be a webhook URL.
                 level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
                 username (str, optional): The username to use when sending messages. Defaults to None.
                 avatar_url (str, optional): The avatar URL to use when sending messages. Defaults to None.
         &#34;&#34;&#34;
@@ -678,27 +605,11 @@ and the filter list to empty.</p></div>
                 self,
                 url: str,
                 level: int = logging.NOTSET,
-                msg_creator: MessageCreator = None,
+                message_creator: MessageCreator = None,
                 username: str = None,
                 avatar_url: str = None,
         ) -&gt; None:
-                super().__init__(
-                        url,
-                        level=level,
-                        message_creator=msg_creator,
-                        allowed_fields=(
-                                &#34;content&#34;,
-                                &#34;username&#34;,
-                                &#34;avatar_url&#34;,
-                                &#34;tts&#34;,
-                                &#34;embeds&#34;,
-                                &#34;allowed_mentions&#34;,
-                                &#34;components&#34;,
-                                &#34;files&#34;,
-                                &#34;payload_json&#34;,
-                                &#34;attachments&#34;,
-                        ),
-                )
+                super().__init__(url, level=level, message_creator=message_creator)
                 self.__username = username
                 self.__avatar_url = avatar_url
 
@@ -768,9 +679,7 @@ and the filter list to empty.</p></div>
 <li><code><b><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler">DiscordHandler</a></b></code>:
 <ul class="hlist">
 <li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.emit" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.emit">emit</a></code></li>
-<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.filter_fields" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.filter_fields">filter_fields</a></code></li>
 <li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages">prepare_messages</a></code></li>
-<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.send_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.send_messages">send_messages</a></code></li>
 </ul>
 </li>
 </ul>
@@ -814,9 +723,7 @@ and the filter list to empty.</p></div>
 <h4><code><a title="discord_lumberjack.handlers.DiscordHandler" href="#discord_lumberjack.handlers.DiscordHandler">DiscordHandler</a></code></h4>
 <ul class="">
 <li><code><a title="discord_lumberjack.handlers.DiscordHandler.emit" href="#discord_lumberjack.handlers.DiscordHandler.emit">emit</a></code></li>
-<li><code><a title="discord_lumberjack.handlers.DiscordHandler.filter_fields" href="#discord_lumberjack.handlers.DiscordHandler.filter_fields">filter_fields</a></code></li>
 <li><code><a title="discord_lumberjack.handlers.DiscordHandler.prepare_messages" href="#discord_lumberjack.handlers.DiscordHandler.prepare_messages">prepare_messages</a></code></li>
-<li><code><a title="discord_lumberjack.handlers.DiscordHandler.send_messages" href="#discord_lumberjack.handlers.DiscordHandler.send_messages">send_messages</a></code></li>
 <li><code><a title="discord_lumberjack.handlers.DiscordHandler.transform_message" href="#discord_lumberjack.handlers.DiscordHandler.transform_message">transform_message</a></code></li>
 </ul>
 </li>

@@ -27,21 +27,332 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">from logging import LogRecord
-from typing import Callable, Iterable, Mapping
+from typing import Callable, Generator, Iterable, List, Mapping, Tuple
 from .message_creator import MessageCreator
 from .log_colours import LogColours
-from .embed import Embed
+from .embed import Embed, EmbedFieldSetter, embed_length, empty_embed
+import datetime as dt
+from itertools import chain
+import traceback
 
 
 class EmbedMessageCreator(MessageCreator):
-        def __init__(self, colours: Mapping[int, int]) -&gt; None:
+        &#34;&#34;&#34;This message creator creates messages with the `LogRecord`&#39;s data nicely formatted in an embed.
+
+        To customise the way the embed looks, you should subclass this class and override any or all of the methods starting with `get_`. All of these (except two) take a `LogRecord`, and most of them simply return the string to put in one of the embed&#39;s fields.
+
+        The first exceptions is `get_field_definitions`, which returns a list of tuples of two functions, these are used to get the name or value of the field, respectively. They both take a `LogRecord` and return a string.
+
+        The second exception is `get_new_embed`, which returns an embed prefilled with the fields that should be set on every embed that a `LogRecord` is split into.
+
+        Args:
+                colours (Mapping[int, int]): A mapping of log levels to colours. If a log level doesn&#39;t have an index in this mapping, the colour of the closest level lower than it will be used. If not provided, sensible selection of colours will be used.
+        &#34;&#34;&#34;
+
+        def __init__(self, colours: Mapping[int, int] = None,) -&gt; None:
                 super().__init__()
                 self.__colours = LogColours(colours)
+                self.__field_setters = self.__create_field_setters()
 
         def messages(
                 self, record: LogRecord, format_func: Callable[[LogRecord], str]
         ) -&gt; Iterable[dict]:
-                raise NotImplementedError()</code></pre>
+                &#34;&#34;&#34;This method is responsible for creating a batch of messages for each `LogRecord`. It creates messages with a fancy looking embed. If there is too much data in the `LogRecord` for one embed, it will create more as needed.
+
+                This method ignores the `format_func` argument.
+
+                Args:
+                        record (LogRecord): The record to create messages for.
+                        format_func (Callable[[LogRecord], str]): This argument is ignored.
+
+                Returns:
+                        Iterable[dict]: The messages to pass on to the handler.
+                &#34;&#34;&#34;
+                first_embed = self.get_new_embed(record)
+                embeds = [first_embed]
+                for field_setter in self.__field_setters:
+                        for new_embed in field_setter.set_field(
+                                first_embed, record, None, self.get_new_embed, 6000
+                        ):
+                                embeds.append(new_embed)
+                for embed in embeds:
+                        self.__fix_fields(embed)
+                return (
+                        {&#34;embeds&#34;: embeds_chunk} for embeds_chunk in self.__embed_chunks(embeds)
+                )
+
+        def __embed_chunks(
+                self, embeds: Iterable[Embed]
+        ) -&gt; Generator[List[Embed], None, None]:
+                &#34;&#34;&#34;This method splits the given embeds into chunks of up to 10, keeping within the limit of 6000 total characters (on certain fields).
+
+                This method assumes that each embed has a length of at most 6000 characters.
+
+                Args:
+                        embeds (Iterable[Embed]): The embeds to split.
+
+                Yields:
+                        List[Embed]: The embeds in chunks of 10.
+                &#34;&#34;&#34;
+                limit = 6000
+                chunk: List[Embed] = []
+                for embed in embeds:
+                        length = embed_length(embed)
+                        if length &lt; limit and len(chunk) &lt; 10:
+                                chunk.append(embed)
+                                limit -= length
+                        else:
+                                yield chunk
+                                chunk = [embed]
+                                limit = 6000 - length
+                yield chunk
+
+        def get_colour(self, record: LogRecord) -&gt; int:
+                &#34;&#34;&#34;Returns the colour to set the embed to.
+
+                This is obtained from the `colours` mapping passed to the constructor and from the log level. If you want to customise the colours you should probably do it by passing the colours you want to the constructor rather than by overriding this method. However if you want some more advanced custom behaviour, such as setting the colour based on the file that created the log record, feel free to override this method to do that.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        int: The colour to set the embed to.
+                &#34;&#34;&#34;
+                return self.__colours[record.levelno]
+
+        def get_thumbnail_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s thumbnail URL to. By default this is left empty.
+
+                You can override this method to return a custom thumbnail URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the thumbnail URL to.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_author_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s author&#39;s URL to. By default there is no URL.
+
+                You can override this method to return a custom URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The URL to set for the author.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_author_icon_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s author&#39;s icon URL to. By default this is an appropriate image corresponding to the log level.
+
+                You can override this method to return a custom icon URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The URL to set the author&#39;s icon to.
+                &#34;&#34;&#34;
+                return f&#34;https://github.com/abrahammurciano/discord-lumberjack/raw/main/images/{record.levelname.lower()}.png&#34;
+
+        def get_author_name(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s author&#39;s name to. By default this is the name of the log level. FOr example &#34;ERROR&#34;, &#34;INFO&#34;, etc.
+
+                You can override this method to return a custom name.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the author&#39;s name to.
+                &#34;&#34;&#34;
+                return record.levelname
+
+        def get_title(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s title to. By default this is the message that was logged, for examply by calling a log method like `log.info(&#34;This is the message that was logged&#34;)`.
+
+                You can override this method to return a custom title.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the title to.
+                &#34;&#34;&#34;
+                return record.getMessage()
+
+        def get_description(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s description to. By default this is the path to the file and the line that the log was created at.
+
+                You can override this method to return a custom description.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the description to.
+                &#34;&#34;&#34;
+                return f&#34;In {record.pathname} at line {record.lineno}&#34;
+
+        def get_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s URL to. By default there is no URL.
+
+                You can override this method to return a custom URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The URL to set the embed&#39;s URL to.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_footer_icon_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s footer icon to. By default the footer icon is left empty.
+
+                You can override this method to return a custom footer icon URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the footer icon to.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_footer_text(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s footer to. By default the footer is left empty.
+
+                You can override this method to return a custom footer.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the footer to.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_timestamp(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s timestamp to. By default this is the time the log was created.
+
+                You probably won&#39;t need to override this method.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the timestamp to.
+                &#34;&#34;&#34;
+                tzinfo = dt.datetime.now().astimezone().tzinfo
+                return dt.datetime.fromtimestamp(record.created, tz=tzinfo).isoformat()
+
+        def get_image_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s image URL to. By default this is left empty.
+
+                You can override this method to return a custom image URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the image URL to.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_field_definitions(
+                self,
+        ) -&gt; List[Tuple[Callable[[LogRecord], str], Callable[[LogRecord], str]]]:
+                &#34;&#34;&#34;This method defines which fields will be included in the embed.
+
+                By default, it defines one field which contains exception information, if there was an exception. You can override this method to change what fields are included.
+
+                This function should return a list of tuples, one for each field definition. Each tuple should consist of two functions both of which take the `LogRecord` as input and return a string. The first returns the string to set the field name to, and the second returns the string to set the field value to.
+
+                Note, if a field name or value is left empty, it will be set to a dash &#34;-&#34; instead. If both the field name *and* value are left empty, the field will be removed. Therefore if you want to conditionally include a field, both functions in that field&#39;s tuple should conditionally return an empty string.
+
+                Returns:
+                        List[Tuple[Callable[[LogRecord], str], Callable[[LogRecord], str]]]: A list of tuples, each containing two functions similar to the other getters in this class. One for the field name and one for the field value.
+                &#34;&#34;&#34;
+
+                def exception_title(record: LogRecord) -&gt; str:
+                        return (
+                                f&#34;{record.exc_info[0].__name__}: {record.exc_info[1]}&#34;
+                                if record.exc_info and record.exc_info[0]
+                                else &#34;&#34;
+                        )
+
+                def exception_info(record: LogRecord) -&gt; str:
+                        nl = &#34;\n&#34;
+                        return (
+                                f&#34;```{nl.join(traceback.format_tb(record.exc_info[2]))}```&#34;
+                                if record.exc_info and record.exc_info[2]
+                                else &#34;&#34;
+                        )
+
+                return [(exception_title, exception_info)]
+
+        def get_new_embed(self, record: LogRecord) -&gt; Embed:
+                &#34;&#34;&#34;This method is called to create each embed that a `LogRecord` splits up into. So if there are any properties you want to be set for every embed that gets produced from a single `LogRecord`, here is the place to set them.
+
+                For example -- and this is the default behaviour -- you might want all embeds of a particular `LogRecord` to have the colour set (according to the log level most likely). Then in the new embed created by this function, you should set the colour before returning it.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        Embed: A new embed with possibly some properties preset.
+                &#34;&#34;&#34;
+                embed = empty_embed(len(self.get_field_definitions()))
+                embed[&#34;color&#34;] = self.get_colour(record)
+                return embed
+
+        def __create_field_setters(self) -&gt; Iterable[EmbedFieldSetter]:
+
+                fields_field_setters = chain.from_iterable(
+                        (
+                                EmbedFieldSetter((&#34;fields&#34;, i, &#34;name&#34;), get_name, 256),
+                                EmbedFieldSetter((&#34;fields&#34;, i, &#34;value&#34;), get_value, 1024),
+                        )
+                        for i, (get_name, get_value) in enumerate(self.get_field_definitions())
+                )
+
+                return [
+                        EmbedFieldSetter((&#34;color&#34;,), self.get_colour),
+                        EmbedFieldSetter((&#34;thumbnail&#34;, &#34;url&#34;), self.get_thumbnail_url),
+                        EmbedFieldSetter((&#34;author&#34;, &#34;url&#34;), self.get_author_url),
+                        EmbedFieldSetter((&#34;author&#34;, &#34;icon_url&#34;), self.get_author_icon_url),
+                        EmbedFieldSetter((&#34;author&#34;, &#34;name&#34;), self.get_author_name, 256),
+                        EmbedFieldSetter((&#34;title&#34;,), self.get_title, 256),
+                        EmbedFieldSetter((&#34;description&#34;,), self.get_description, 4096),
+                        EmbedFieldSetter((&#34;url&#34;,), self.get_url),
+                        *fields_field_setters,
+                        EmbedFieldSetter((&#34;footer&#34;, &#34;icon_url&#34;), self.get_footer_icon_url),
+                        EmbedFieldSetter((&#34;footer&#34;, &#34;text&#34;), self.get_footer_text, 2048),
+                        EmbedFieldSetter((&#34;timestamp&#34;,), self.get_timestamp),
+                        EmbedFieldSetter((&#34;image&#34;, &#34;url&#34;), self.get_image_url),
+                ]
+
+        def __fix_fields(self, embed: Embed) -&gt; None:
+                &#34;&#34;&#34;This method is called to fix any fields that are invalid.
+
+                It removes fields with no name and no value. If sets empty name or values to &#34;-&#34; if it has either a name or value.
+
+                Args:
+                        embed (Embed): The embed whose fields to fix.
+                &#34;&#34;&#34;
+                embed[&#34;fields&#34;] = [
+                        field for field in embed[&#34;fields&#34;] if field[&#34;name&#34;] or field[&#34;value&#34;]
+                ]
+                for field in embed[&#34;fields&#34;]:
+                        if not field[&#34;name&#34;]:
+                                field[&#34;name&#34;] = &#34;-&#34;
+                        if not field[&#34;value&#34;]:
+                                field[&#34;value&#34;] = &#34;-&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -55,38 +366,893 @@ class EmbedMessageCreator(MessageCreator):
 <dl>
 <dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator"><code class="flex name class">
 <span>class <span class="ident">EmbedMessageCreator</span></span>
-<span>(</span><span>colours: Mapping[int, int])</span>
+<span>(</span><span>colours: Mapping[int, int] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A class which is able to create messages from a log record.</p>
-<p>Subclasses must implement the <code>create_message</code> method.</p></div>
+<div class="desc"><p>This message creator creates messages with the <code>LogRecord</code>'s data nicely formatted in an embed.</p>
+<p>To customise the way the embed looks, you should subclass this class and override any or all of the methods starting with <code>get_</code>. All of these (except two) take a <code>LogRecord</code>, and most of them simply return the string to put in one of the embed's fields.</p>
+<p>The first exceptions is <code>get_field_definitions</code>, which returns a list of tuples of two functions, these are used to get the name or value of the field, respectively. They both take a <code>LogRecord</code> and return a string.</p>
+<p>The second exception is <code>get_new_embed</code>, which returns an embed prefilled with the fields that should be set on every embed that a <code>LogRecord</code> is split into.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>colours</code></strong> :&ensp;<code>Mapping[int, int]</code></dt>
+<dd>A mapping of log levels to colours. If a log level doesn't have an index in this mapping, the colour of the closest level lower than it will be used. If not provided, sensible selection of colours will be used.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class EmbedMessageCreator(MessageCreator):
-        def __init__(self, colours: Mapping[int, int]) -&gt; None:
+        &#34;&#34;&#34;This message creator creates messages with the `LogRecord`&#39;s data nicely formatted in an embed.
+
+        To customise the way the embed looks, you should subclass this class and override any or all of the methods starting with `get_`. All of these (except two) take a `LogRecord`, and most of them simply return the string to put in one of the embed&#39;s fields.
+
+        The first exceptions is `get_field_definitions`, which returns a list of tuples of two functions, these are used to get the name or value of the field, respectively. They both take a `LogRecord` and return a string.
+
+        The second exception is `get_new_embed`, which returns an embed prefilled with the fields that should be set on every embed that a `LogRecord` is split into.
+
+        Args:
+                colours (Mapping[int, int]): A mapping of log levels to colours. If a log level doesn&#39;t have an index in this mapping, the colour of the closest level lower than it will be used. If not provided, sensible selection of colours will be used.
+        &#34;&#34;&#34;
+
+        def __init__(self, colours: Mapping[int, int] = None,) -&gt; None:
                 super().__init__()
                 self.__colours = LogColours(colours)
+                self.__field_setters = self.__create_field_setters()
 
         def messages(
                 self, record: LogRecord, format_func: Callable[[LogRecord], str]
         ) -&gt; Iterable[dict]:
-                raise NotImplementedError()</code></pre>
+                &#34;&#34;&#34;This method is responsible for creating a batch of messages for each `LogRecord`. It creates messages with a fancy looking embed. If there is too much data in the `LogRecord` for one embed, it will create more as needed.
+
+                This method ignores the `format_func` argument.
+
+                Args:
+                        record (LogRecord): The record to create messages for.
+                        format_func (Callable[[LogRecord], str]): This argument is ignored.
+
+                Returns:
+                        Iterable[dict]: The messages to pass on to the handler.
+                &#34;&#34;&#34;
+                first_embed = self.get_new_embed(record)
+                embeds = [first_embed]
+                for field_setter in self.__field_setters:
+                        for new_embed in field_setter.set_field(
+                                first_embed, record, None, self.get_new_embed, 6000
+                        ):
+                                embeds.append(new_embed)
+                for embed in embeds:
+                        self.__fix_fields(embed)
+                return (
+                        {&#34;embeds&#34;: embeds_chunk} for embeds_chunk in self.__embed_chunks(embeds)
+                )
+
+        def __embed_chunks(
+                self, embeds: Iterable[Embed]
+        ) -&gt; Generator[List[Embed], None, None]:
+                &#34;&#34;&#34;This method splits the given embeds into chunks of up to 10, keeping within the limit of 6000 total characters (on certain fields).
+
+                This method assumes that each embed has a length of at most 6000 characters.
+
+                Args:
+                        embeds (Iterable[Embed]): The embeds to split.
+
+                Yields:
+                        List[Embed]: The embeds in chunks of 10.
+                &#34;&#34;&#34;
+                limit = 6000
+                chunk: List[Embed] = []
+                for embed in embeds:
+                        length = embed_length(embed)
+                        if length &lt; limit and len(chunk) &lt; 10:
+                                chunk.append(embed)
+                                limit -= length
+                        else:
+                                yield chunk
+                                chunk = [embed]
+                                limit = 6000 - length
+                yield chunk
+
+        def get_colour(self, record: LogRecord) -&gt; int:
+                &#34;&#34;&#34;Returns the colour to set the embed to.
+
+                This is obtained from the `colours` mapping passed to the constructor and from the log level. If you want to customise the colours you should probably do it by passing the colours you want to the constructor rather than by overriding this method. However if you want some more advanced custom behaviour, such as setting the colour based on the file that created the log record, feel free to override this method to do that.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        int: The colour to set the embed to.
+                &#34;&#34;&#34;
+                return self.__colours[record.levelno]
+
+        def get_thumbnail_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s thumbnail URL to. By default this is left empty.
+
+                You can override this method to return a custom thumbnail URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the thumbnail URL to.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_author_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s author&#39;s URL to. By default there is no URL.
+
+                You can override this method to return a custom URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The URL to set for the author.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_author_icon_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s author&#39;s icon URL to. By default this is an appropriate image corresponding to the log level.
+
+                You can override this method to return a custom icon URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The URL to set the author&#39;s icon to.
+                &#34;&#34;&#34;
+                return f&#34;https://github.com/abrahammurciano/discord-lumberjack/raw/main/images/{record.levelname.lower()}.png&#34;
+
+        def get_author_name(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s author&#39;s name to. By default this is the name of the log level. FOr example &#34;ERROR&#34;, &#34;INFO&#34;, etc.
+
+                You can override this method to return a custom name.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the author&#39;s name to.
+                &#34;&#34;&#34;
+                return record.levelname
+
+        def get_title(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s title to. By default this is the message that was logged, for examply by calling a log method like `log.info(&#34;This is the message that was logged&#34;)`.
+
+                You can override this method to return a custom title.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the title to.
+                &#34;&#34;&#34;
+                return record.getMessage()
+
+        def get_description(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s description to. By default this is the path to the file and the line that the log was created at.
+
+                You can override this method to return a custom description.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the description to.
+                &#34;&#34;&#34;
+                return f&#34;In {record.pathname} at line {record.lineno}&#34;
+
+        def get_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s URL to. By default there is no URL.
+
+                You can override this method to return a custom URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The URL to set the embed&#39;s URL to.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_footer_icon_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s footer icon to. By default the footer icon is left empty.
+
+                You can override this method to return a custom footer icon URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the footer icon to.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_footer_text(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s footer to. By default the footer is left empty.
+
+                You can override this method to return a custom footer.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the footer to.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_timestamp(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s timestamp to. By default this is the time the log was created.
+
+                You probably won&#39;t need to override this method.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the timestamp to.
+                &#34;&#34;&#34;
+                tzinfo = dt.datetime.now().astimezone().tzinfo
+                return dt.datetime.fromtimestamp(record.created, tz=tzinfo).isoformat()
+
+        def get_image_url(self, record: LogRecord) -&gt; str:
+                &#34;&#34;&#34;Returns the string to set the embed&#39;s image URL to. By default this is left empty.
+
+                You can override this method to return a custom image URL.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        str: The string to set the image URL to.
+                &#34;&#34;&#34;
+                return &#34;&#34;
+
+        def get_field_definitions(
+                self,
+        ) -&gt; List[Tuple[Callable[[LogRecord], str], Callable[[LogRecord], str]]]:
+                &#34;&#34;&#34;This method defines which fields will be included in the embed.
+
+                By default, it defines one field which contains exception information, if there was an exception. You can override this method to change what fields are included.
+
+                This function should return a list of tuples, one for each field definition. Each tuple should consist of two functions both of which take the `LogRecord` as input and return a string. The first returns the string to set the field name to, and the second returns the string to set the field value to.
+
+                Note, if a field name or value is left empty, it will be set to a dash &#34;-&#34; instead. If both the field name *and* value are left empty, the field will be removed. Therefore if you want to conditionally include a field, both functions in that field&#39;s tuple should conditionally return an empty string.
+
+                Returns:
+                        List[Tuple[Callable[[LogRecord], str], Callable[[LogRecord], str]]]: A list of tuples, each containing two functions similar to the other getters in this class. One for the field name and one for the field value.
+                &#34;&#34;&#34;
+
+                def exception_title(record: LogRecord) -&gt; str:
+                        return (
+                                f&#34;{record.exc_info[0].__name__}: {record.exc_info[1]}&#34;
+                                if record.exc_info and record.exc_info[0]
+                                else &#34;&#34;
+                        )
+
+                def exception_info(record: LogRecord) -&gt; str:
+                        nl = &#34;\n&#34;
+                        return (
+                                f&#34;```{nl.join(traceback.format_tb(record.exc_info[2]))}```&#34;
+                                if record.exc_info and record.exc_info[2]
+                                else &#34;&#34;
+                        )
+
+                return [(exception_title, exception_info)]
+
+        def get_new_embed(self, record: LogRecord) -&gt; Embed:
+                &#34;&#34;&#34;This method is called to create each embed that a `LogRecord` splits up into. So if there are any properties you want to be set for every embed that gets produced from a single `LogRecord`, here is the place to set them.
+
+                For example -- and this is the default behaviour -- you might want all embeds of a particular `LogRecord` to have the colour set (according to the log level most likely). Then in the new embed created by this function, you should set the colour before returning it.
+
+                Args:
+                        record (LogRecord): The `LogRecord` containing the data to use.
+
+                Returns:
+                        Embed: A new embed with possibly some properties preset.
+                &#34;&#34;&#34;
+                embed = empty_embed(len(self.get_field_definitions()))
+                embed[&#34;color&#34;] = self.get_colour(record)
+                return embed
+
+        def __create_field_setters(self) -&gt; Iterable[EmbedFieldSetter]:
+
+                fields_field_setters = chain.from_iterable(
+                        (
+                                EmbedFieldSetter((&#34;fields&#34;, i, &#34;name&#34;), get_name, 256),
+                                EmbedFieldSetter((&#34;fields&#34;, i, &#34;value&#34;), get_value, 1024),
+                        )
+                        for i, (get_name, get_value) in enumerate(self.get_field_definitions())
+                )
+
+                return [
+                        EmbedFieldSetter((&#34;color&#34;,), self.get_colour),
+                        EmbedFieldSetter((&#34;thumbnail&#34;, &#34;url&#34;), self.get_thumbnail_url),
+                        EmbedFieldSetter((&#34;author&#34;, &#34;url&#34;), self.get_author_url),
+                        EmbedFieldSetter((&#34;author&#34;, &#34;icon_url&#34;), self.get_author_icon_url),
+                        EmbedFieldSetter((&#34;author&#34;, &#34;name&#34;), self.get_author_name, 256),
+                        EmbedFieldSetter((&#34;title&#34;,), self.get_title, 256),
+                        EmbedFieldSetter((&#34;description&#34;,), self.get_description, 4096),
+                        EmbedFieldSetter((&#34;url&#34;,), self.get_url),
+                        *fields_field_setters,
+                        EmbedFieldSetter((&#34;footer&#34;, &#34;icon_url&#34;), self.get_footer_icon_url),
+                        EmbedFieldSetter((&#34;footer&#34;, &#34;text&#34;), self.get_footer_text, 2048),
+                        EmbedFieldSetter((&#34;timestamp&#34;,), self.get_timestamp),
+                        EmbedFieldSetter((&#34;image&#34;, &#34;url&#34;), self.get_image_url),
+                ]
+
+        def __fix_fields(self, embed: Embed) -&gt; None:
+                &#34;&#34;&#34;This method is called to fix any fields that are invalid.
+
+                It removes fields with no name and no value. If sets empty name or values to &#34;-&#34; if it has either a name or value.
+
+                Args:
+                        embed (Embed): The embed whose fields to fix.
+                &#34;&#34;&#34;
+                embed[&#34;fields&#34;] = [
+                        field for field in embed[&#34;fields&#34;] if field[&#34;name&#34;] or field[&#34;value&#34;]
+                ]
+                for field in embed[&#34;fields&#34;]:
+                        if not field[&#34;name&#34;]:
+                                field[&#34;name&#34;] = &#34;-&#34;
+                        if not field[&#34;value&#34;]:
+                                field[&#34;value&#34;] = &#34;-&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></li>
 <li>abc.ABC</li>
 </ul>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></b></code>:
-<ul class="hlist">
-<li><code><a title="discord_lumberjack.message_creators.message_creator.MessageCreator.messages" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator.messages">messages</a></code></li>
-</ul>
-</li>
-</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_icon_url"><code class="name flex">
+<span>def <span class="ident">get_author_icon_url</span></span>(<span>self, record: logging.LogRecord) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the string to set the embed's author's icon URL to. By default this is an appropriate image corresponding to the log level.</p>
+<p>You can override this method to return a custom icon URL.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The URL to set the author's icon to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_author_icon_url(self, record: LogRecord) -&gt; str:
+        &#34;&#34;&#34;Returns the string to set the embed&#39;s author&#39;s icon URL to. By default this is an appropriate image corresponding to the log level.
+
+        You can override this method to return a custom icon URL.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                str: The URL to set the author&#39;s icon to.
+        &#34;&#34;&#34;
+        return f&#34;https://github.com/abrahammurciano/discord-lumberjack/raw/main/images/{record.levelname.lower()}.png&#34;</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_name"><code class="name flex">
+<span>def <span class="ident">get_author_name</span></span>(<span>self, record: logging.LogRecord) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the string to set the embed's author's name to. By default this is the name of the log level. FOr example "ERROR", "INFO", etc.</p>
+<p>You can override this method to return a custom name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The string to set the author's name to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_author_name(self, record: LogRecord) -&gt; str:
+        &#34;&#34;&#34;Returns the string to set the embed&#39;s author&#39;s name to. By default this is the name of the log level. FOr example &#34;ERROR&#34;, &#34;INFO&#34;, etc.
+
+        You can override this method to return a custom name.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                str: The string to set the author&#39;s name to.
+        &#34;&#34;&#34;
+        return record.levelname</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_url"><code class="name flex">
+<span>def <span class="ident">get_author_url</span></span>(<span>self, record: logging.LogRecord) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the string to set the embed's author's URL to. By default there is no URL.</p>
+<p>You can override this method to return a custom URL.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The URL to set for the author.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_author_url(self, record: LogRecord) -&gt; str:
+        &#34;&#34;&#34;Returns the string to set the embed&#39;s author&#39;s URL to. By default there is no URL.
+
+        You can override this method to return a custom URL.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                str: The URL to set for the author.
+        &#34;&#34;&#34;
+        return &#34;&#34;</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_colour"><code class="name flex">
+<span>def <span class="ident">get_colour</span></span>(<span>self, record: logging.LogRecord) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the colour to set the embed to.</p>
+<p>This is obtained from the <code>colours</code> mapping passed to the constructor and from the log level. If you want to customise the colours you should probably do it by passing the colours you want to the constructor rather than by overriding this method. However if you want some more advanced custom behaviour, such as setting the colour based on the file that created the log record, feel free to override this method to do that.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>The colour to set the embed to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_colour(self, record: LogRecord) -&gt; int:
+        &#34;&#34;&#34;Returns the colour to set the embed to.
+
+        This is obtained from the `colours` mapping passed to the constructor and from the log level. If you want to customise the colours you should probably do it by passing the colours you want to the constructor rather than by overriding this method. However if you want some more advanced custom behaviour, such as setting the colour based on the file that created the log record, feel free to override this method to do that.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                int: The colour to set the embed to.
+        &#34;&#34;&#34;
+        return self.__colours[record.levelno]</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_description"><code class="name flex">
+<span>def <span class="ident">get_description</span></span>(<span>self, record: logging.LogRecord) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the string to set the embed's description to. By default this is the path to the file and the line that the log was created at.</p>
+<p>You can override this method to return a custom description.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The string to set the description to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_description(self, record: LogRecord) -&gt; str:
+        &#34;&#34;&#34;Returns the string to set the embed&#39;s description to. By default this is the path to the file and the line that the log was created at.
+
+        You can override this method to return a custom description.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                str: The string to set the description to.
+        &#34;&#34;&#34;
+        return f&#34;In {record.pathname} at line {record.lineno}&#34;</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_field_definitions"><code class="name flex">
+<span>def <span class="ident">get_field_definitions</span></span>(<span>self) ‑> List[Tuple[Callable[[logging.LogRecord], str], Callable[[logging.LogRecord], str]]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method defines which fields will be included in the embed.</p>
+<p>By default, it defines one field which contains exception information, if there was an exception. You can override this method to change what fields are included.</p>
+<p>This function should return a list of tuples, one for each field definition. Each tuple should consist of two functions both of which take the <code>LogRecord</code> as input and return a string. The first returns the string to set the field name to, and the second returns the string to set the field value to.</p>
+<p>Note, if a field name or value is left empty, it will be set to a dash "-" instead. If both the field name <em>and</em> value are left empty, the field will be removed. Therefore if you want to conditionally include a field, both functions in that field's tuple should conditionally return an empty string.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[Tuple[Callable[[LogRecord], str], Callable[[LogRecord], str]]]</code></dt>
+<dd>A list of tuples, each containing two functions similar to the other getters in this class. One for the field name and one for the field value.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_field_definitions(
+        self,
+) -&gt; List[Tuple[Callable[[LogRecord], str], Callable[[LogRecord], str]]]:
+        &#34;&#34;&#34;This method defines which fields will be included in the embed.
+
+        By default, it defines one field which contains exception information, if there was an exception. You can override this method to change what fields are included.
+
+        This function should return a list of tuples, one for each field definition. Each tuple should consist of two functions both of which take the `LogRecord` as input and return a string. The first returns the string to set the field name to, and the second returns the string to set the field value to.
+
+        Note, if a field name or value is left empty, it will be set to a dash &#34;-&#34; instead. If both the field name *and* value are left empty, the field will be removed. Therefore if you want to conditionally include a field, both functions in that field&#39;s tuple should conditionally return an empty string.
+
+        Returns:
+                List[Tuple[Callable[[LogRecord], str], Callable[[LogRecord], str]]]: A list of tuples, each containing two functions similar to the other getters in this class. One for the field name and one for the field value.
+        &#34;&#34;&#34;
+
+        def exception_title(record: LogRecord) -&gt; str:
+                return (
+                        f&#34;{record.exc_info[0].__name__}: {record.exc_info[1]}&#34;
+                        if record.exc_info and record.exc_info[0]
+                        else &#34;&#34;
+                )
+
+        def exception_info(record: LogRecord) -&gt; str:
+                nl = &#34;\n&#34;
+                return (
+                        f&#34;```{nl.join(traceback.format_tb(record.exc_info[2]))}```&#34;
+                        if record.exc_info and record.exc_info[2]
+                        else &#34;&#34;
+                )
+
+        return [(exception_title, exception_info)]</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_footer_icon_url"><code class="name flex">
+<span>def <span class="ident">get_footer_icon_url</span></span>(<span>self, record: logging.LogRecord) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the string to set the embed's footer icon to. By default the footer icon is left empty.</p>
+<p>You can override this method to return a custom footer icon URL.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The string to set the footer icon to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_footer_icon_url(self, record: LogRecord) -&gt; str:
+        &#34;&#34;&#34;Returns the string to set the embed&#39;s footer icon to. By default the footer icon is left empty.
+
+        You can override this method to return a custom footer icon URL.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                str: The string to set the footer icon to.
+        &#34;&#34;&#34;
+        return &#34;&#34;</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_footer_text"><code class="name flex">
+<span>def <span class="ident">get_footer_text</span></span>(<span>self, record: logging.LogRecord) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the string to set the embed's footer to. By default the footer is left empty.</p>
+<p>You can override this method to return a custom footer.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The string to set the footer to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_footer_text(self, record: LogRecord) -&gt; str:
+        &#34;&#34;&#34;Returns the string to set the embed&#39;s footer to. By default the footer is left empty.
+
+        You can override this method to return a custom footer.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                str: The string to set the footer to.
+        &#34;&#34;&#34;
+        return &#34;&#34;</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_image_url"><code class="name flex">
+<span>def <span class="ident">get_image_url</span></span>(<span>self, record: logging.LogRecord) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the string to set the embed's image URL to. By default this is left empty.</p>
+<p>You can override this method to return a custom image URL.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The string to set the image URL to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_image_url(self, record: LogRecord) -&gt; str:
+        &#34;&#34;&#34;Returns the string to set the embed&#39;s image URL to. By default this is left empty.
+
+        You can override this method to return a custom image URL.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                str: The string to set the image URL to.
+        &#34;&#34;&#34;
+        return &#34;&#34;</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_new_embed"><code class="name flex">
+<span>def <span class="ident">get_new_embed</span></span>(<span>self, record: logging.LogRecord) ‑> <a title="discord_lumberjack.message_creators.embed.Embed" href="embed.html#discord_lumberjack.message_creators.embed.Embed">Embed</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method is called to create each embed that a <code>LogRecord</code> splits up into. So if there are any properties you want to be set for every embed that gets produced from a single <code>LogRecord</code>, here is the place to set them.</p>
+<p>For example &ndash; and this is the default behaviour &ndash; you might want all embeds of a particular <code>LogRecord</code> to have the colour set (according to the log level most likely). Then in the new embed created by this function, you should set the colour before returning it.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Embed</code></dt>
+<dd>A new embed with possibly some properties preset.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_new_embed(self, record: LogRecord) -&gt; Embed:
+        &#34;&#34;&#34;This method is called to create each embed that a `LogRecord` splits up into. So if there are any properties you want to be set for every embed that gets produced from a single `LogRecord`, here is the place to set them.
+
+        For example -- and this is the default behaviour -- you might want all embeds of a particular `LogRecord` to have the colour set (according to the log level most likely). Then in the new embed created by this function, you should set the colour before returning it.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                Embed: A new embed with possibly some properties preset.
+        &#34;&#34;&#34;
+        embed = empty_embed(len(self.get_field_definitions()))
+        embed[&#34;color&#34;] = self.get_colour(record)
+        return embed</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_thumbnail_url"><code class="name flex">
+<span>def <span class="ident">get_thumbnail_url</span></span>(<span>self, record: logging.LogRecord) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the string to set the embed's thumbnail URL to. By default this is left empty.</p>
+<p>You can override this method to return a custom thumbnail URL.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The string to set the thumbnail URL to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_thumbnail_url(self, record: LogRecord) -&gt; str:
+        &#34;&#34;&#34;Returns the string to set the embed&#39;s thumbnail URL to. By default this is left empty.
+
+        You can override this method to return a custom thumbnail URL.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                str: The string to set the thumbnail URL to.
+        &#34;&#34;&#34;
+        return &#34;&#34;</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_timestamp"><code class="name flex">
+<span>def <span class="ident">get_timestamp</span></span>(<span>self, record: logging.LogRecord) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the string to set the embed's timestamp to. By default this is the time the log was created.</p>
+<p>You probably won't need to override this method.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The string to set the timestamp to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_timestamp(self, record: LogRecord) -&gt; str:
+        &#34;&#34;&#34;Returns the string to set the embed&#39;s timestamp to. By default this is the time the log was created.
+
+        You probably won&#39;t need to override this method.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                str: The string to set the timestamp to.
+        &#34;&#34;&#34;
+        tzinfo = dt.datetime.now().astimezone().tzinfo
+        return dt.datetime.fromtimestamp(record.created, tz=tzinfo).isoformat()</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_title"><code class="name flex">
+<span>def <span class="ident">get_title</span></span>(<span>self, record: logging.LogRecord) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the string to set the embed's title to. By default this is the message that was logged, for examply by calling a log method like <code>log.info("This is the message that was logged")</code>.</p>
+<p>You can override this method to return a custom title.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The string to set the title to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_title(self, record: LogRecord) -&gt; str:
+        &#34;&#34;&#34;Returns the string to set the embed&#39;s title to. By default this is the message that was logged, for examply by calling a log method like `log.info(&#34;This is the message that was logged&#34;)`.
+
+        You can override this method to return a custom title.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                str: The string to set the title to.
+        &#34;&#34;&#34;
+        return record.getMessage()</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_url"><code class="name flex">
+<span>def <span class="ident">get_url</span></span>(<span>self, record: logging.LogRecord) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the string to set the embed's URL to. By default there is no URL.</p>
+<p>You can override this method to return a custom URL.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The <code>LogRecord</code> containing the data to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The URL to set the embed's URL to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_url(self, record: LogRecord) -&gt; str:
+        &#34;&#34;&#34;Returns the string to set the embed&#39;s URL to. By default there is no URL.
+
+        You can override this method to return a custom URL.
+
+        Args:
+                record (LogRecord): The `LogRecord` containing the data to use.
+
+        Returns:
+                str: The URL to set the embed&#39;s URL to.
+        &#34;&#34;&#34;
+        return &#34;&#34;</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.messages"><code class="name flex">
+<span>def <span class="ident">messages</span></span>(<span>self, record: logging.LogRecord, format_func: Callable[[logging.LogRecord], str]) ‑> Iterable[dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method is responsible for creating a batch of messages for each <code>LogRecord</code>. It creates messages with a fancy looking embed. If there is too much data in the <code>LogRecord</code> for one embed, it will create more as needed.</p>
+<p>This method ignores the <code>format_func</code> argument.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>LogRecord</code></dt>
+<dd>The record to create messages for.</dd>
+<dt><strong><code>format_func</code></strong> :&ensp;<code>Callable[[LogRecord], str]</code></dt>
+<dd>This argument is ignored.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Iterable[dict]</code></dt>
+<dd>The messages to pass on to the handler.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def messages(
+        self, record: LogRecord, format_func: Callable[[LogRecord], str]
+) -&gt; Iterable[dict]:
+        &#34;&#34;&#34;This method is responsible for creating a batch of messages for each `LogRecord`. It creates messages with a fancy looking embed. If there is too much data in the `LogRecord` for one embed, it will create more as needed.
+
+        This method ignores the `format_func` argument.
+
+        Args:
+                record (LogRecord): The record to create messages for.
+                format_func (Callable[[LogRecord], str]): This argument is ignored.
+
+        Returns:
+                Iterable[dict]: The messages to pass on to the handler.
+        &#34;&#34;&#34;
+        first_embed = self.get_new_embed(record)
+        embeds = [first_embed]
+        for field_setter in self.__field_setters:
+                for new_embed in field_setter.set_field(
+                        first_embed, record, None, self.get_new_embed, 6000
+                ):
+                        embeds.append(new_embed)
+        for embed in embeds:
+                self.__fix_fields(embed)
+        return (
+                {&#34;embeds&#34;: embeds_chunk} for embeds_chunk in self.__embed_chunks(embeds)
+        )</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 </dl>
 </section>
@@ -106,6 +1272,23 @@ class EmbedMessageCreator(MessageCreator):
 <ul>
 <li>
 <h4><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator">EmbedMessageCreator</a></code></h4>
+<ul class="">
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_icon_url" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_icon_url">get_author_icon_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_name" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_name">get_author_name</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_url" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_url">get_author_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_colour" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_colour">get_colour</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_description" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_description">get_description</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_field_definitions" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_field_definitions">get_field_definitions</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_footer_icon_url" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_footer_icon_url">get_footer_icon_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_footer_text" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_footer_text">get_footer_text</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_image_url" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_image_url">get_image_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_new_embed" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_new_embed">get_new_embed</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_thumbnail_url" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_thumbnail_url">get_thumbnail_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_timestamp" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_timestamp">get_timestamp</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_title" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_title">get_title</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_url" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_url">get_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.messages" href="#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.messages">messages</a></code></li>
+</ul>
 </li>
 </ul>
 </li>

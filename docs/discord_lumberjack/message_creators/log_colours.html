@@ -50,8 +50,8 @@ class LogColours:
                 colours (Mapping[int, int], optional): A mapping of log levels to colours. Log levels which are not given will be taken from the closest provided log level less than it. Defaults to a sensible selection of colours.
         &#34;&#34;&#34;
 
-        def __init__(self, colours: Mapping[int, int] = default_colours) -&gt; None:
-                self.__colours = colours
+        def __init__(self, colours: Mapping[int, int] = None) -&gt; None:
+                self.__colours = colours or default_colours
 
         def __getitem__(self, level: int) -&gt; int:
                 try:
@@ -73,7 +73,7 @@ class LogColours:
 <dl>
 <dt id="discord_lumberjack.message_creators.log_colours.LogColours"><code class="flex name class">
 <span>class <span class="ident">LogColours</span></span>
-<span>(</span><span>colours: Mapping[int, int] = {0: 8947848, 10: 7506394, 20: 4437377, 30: 16426522, 40: 16022376, 50: 15746887})</span>
+<span>(</span><span>colours: Mapping[int, int] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This class defines a set of colours used for different log levels.</p>
@@ -99,8 +99,8 @@ class LogColours:
                 colours (Mapping[int, int], optional): A mapping of log levels to colours. Log levels which are not given will be taken from the closest provided log level less than it. Defaults to a sensible selection of colours.
         &#34;&#34;&#34;
 
-        def __init__(self, colours: Mapping[int, int] = default_colours) -&gt; None:
-                self.__colours = colours
+        def __init__(self, colours: Mapping[int, int] = None) -&gt; None:
+                self.__colours = colours or default_colours
 
         def __getitem__(self, level: int) -&gt; int:
                 try:
