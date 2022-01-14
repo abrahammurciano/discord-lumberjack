@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>discord_lumberjack.handlers API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Handlers …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,14 +22,38 @@
 <h1 class="title">Module <code>discord_lumberjack.handlers</code></h1>
 </header>
 <section id="section-intro">
+<h2 id="handlers">Handlers</h2>
+<p>This python module provides several logging handlers (located in the <code><a title="discord_lumberjack.handlers" href="#discord_lumberjack.handlers">discord_lumberjack.handlers</a></code> module) which will send the logs it recieves to a Discord webhook, server channel, or DM channel.</p>
+<p>The available handlers are:</p>
+<ul>
+<li><code><a title="discord_lumberjack.handlers.DiscordChannelHandler" href="#discord_lumberjack.handlers.DiscordChannelHandler">DiscordChannelHandler</a></code> - Uses a bot token and a channel ID to send logs to the given channel from the given bot.</li>
+<li><code><a title="discord_lumberjack.handlers.DiscordDMHandler" href="#discord_lumberjack.handlers.DiscordDMHandler">DiscordDMHandler</a></code> - Uses a bot token and a user ID to send logs to the given user from the given bot.</li>
+<li><code><a title="discord_lumberjack.handlers.DiscordWebhookHandler" href="#discord_lumberjack.handlers.DiscordWebhookHandler">DiscordWebhookHandler</a></code> - Uses a webhook URL to send the logs to.</li>
+<li><code><a title="discord_lumberjack.handlers.DiscordHandler" href="#discord_lumberjack.handlers.DiscordHandler">DiscordHandler</a></code> - This is the base class for the other three. You probably don't want to use this unless you're creating your own fancy handler.</li>
+</ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from .discord_handler import DiscordHandler
+<pre><code class="python">&#34;&#34;&#34;
+
+.. include:: ../../README.md
+        :start-after: &lt;!-- handlers_start --&gt;
+        :end-before: &lt;!-- handlers_end --&gt;
+
+&#34;&#34;&#34;
+
+from .discord_handler import DiscordHandler
 from .discord_webhook_handler import DiscordWebhookHandler
 from .discord_channel_handler import DiscordChannelHandler
-from .discord_dm_handler import DiscordDMHandler</code></pre>
+from .discord_dm_handler import DiscordDMHandler
+
+__all__ = (
+        &#34;DiscordHandler&#34;,
+        &#34;DiscordWebhookHandler&#34;,
+        &#34;DiscordChannelHandler&#34;,
+        &#34;DiscordDMHandler&#34;,
+)</code></pre>
 </details>
 </section>
 <section>
@@ -58,12 +82,708 @@ from .discord_dm_handler import DiscordDMHandler</code></pre>
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="discord_lumberjack.handlers.DiscordChannelHandler"><code class="flex name class">
+<span>class <span class="ident">DiscordChannelHandler</span></span>
+<span>(</span><span>bot_token: str, channel_id: int, level: int = 0, msg_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A logging handler that sends messages to a Discord Channel from a Bot.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bot_token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The authentication token of the Bot to send the message with.</dd>
+<dt><strong><code>channel_id</code></strong> :&ensp;<code>int</code></dt>
+<dd>The ID of the Channel to send the message to.</dd>
+<dt><strong><code>level</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The level at which to log. Defaults to logging.NOTSET.</dd>
+<dt><strong><code>msg_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
+<dd>An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.</dd>
+</dl>
+<p>Initializes the instance - basically setting the formatter to None
+and the filter list to empty.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DiscordChannelHandler(DiscordHandler):
+        &#34;&#34;&#34;A logging handler that sends messages to a Discord Channel from a Bot.
+
+        Args:
+                bot_token (str): The authentication token of the Bot to send the message with.
+                channel_id (int): The ID of the Channel to send the message to.
+                level (int, optional): The level at which to log. Defaults to logging.NOTSET.
+                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+        &#34;&#34;&#34;
+
+        def __init__(
+                self,
+                bot_token: str,
+                channel_id: int,
+                level: int = logging.NOTSET,
+                msg_creator: MessageCreator = None,
+        ) -&gt; None:
+                super().__init__(
+                        f&#34;https://discord.com/api/channels/{channel_id}/messages&#34;,
+                        level=level,
+                        message_creator=msg_creator,
+                        http_headers={&#34;Authorization&#34;: f&#34;Bot {bot_token}&#34;},
+                        allowed_fields=(
+                                &#34;content&#34;,
+                                &#34;tts&#34;,
+                                &#34;embeds&#34;,
+                                &#34;embed&#34;,
+                                &#34;allowed_mentions&#34;,
+                                &#34;message_reference&#34;,
+                                &#34;components&#34;,
+                                &#34;sticker_ids&#34;,
+                                &#34;files&#34;,
+                                &#34;payload_json&#34;,
+                                &#34;attachments&#34;,
+                        ),
+                )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler">DiscordHandler</a></li>
+<li>logging.Handler</li>
+<li>logging.Filterer</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="discord_lumberjack.handlers.discord_dm_handler.DiscordDMHandler" href="discord_dm_handler.html#discord_lumberjack.handlers.discord_dm_handler.DiscordDMHandler">DiscordDMHandler</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler">DiscordHandler</a></b></code>:
+<ul class="hlist">
+<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.emit" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.emit">emit</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.filter_fields" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.filter_fields">filter_fields</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages">prepare_messages</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.send_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.send_messages">send_messages</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.transform_message" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.transform_message">transform_message</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="discord_lumberjack.handlers.DiscordDMHandler"><code class="flex name class">
+<span>class <span class="ident">DiscordDMHandler</span></span>
+<span>(</span><span>bot_token: str, user_id: int, level: int = 0, msg_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A logging handler that sends messages to a Discord
+Direct Message Channel from a Bot.</p>
+<p>Upon construction, this handler will attempt to create a DM channel with the user specified by the user_id argument. If this fails, the constructor will raise a ValueError.</p>
+<p>Since a DM channel is a kind of channel, this handler is a subclass of DiscordChannelHandler.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bot_token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The authentication token of the Bot to send the message with.</dd>
+<dt><strong><code>user_id</code></strong> :&ensp;<code>int</code></dt>
+<dd>The ID of the user to send the message to.</dd>
+<dt><strong><code>level</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The level at which to log. Defaults to logging.NOTSET.</dd>
+<dt><strong><code>msg_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
+<dd>An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.</dd>
+</dl>
+<p>Initializes the instance - basically setting the formatter to None
+and the filter list to empty.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DiscordDMHandler(DiscordChannelHandler):
+        &#34;&#34;&#34;A logging handler that sends messages to a Discord  Direct Message Channel from a Bot.
+
+        Upon construction, this handler will attempt to create a DM channel with the user specified by the user_id argument. If this fails, the constructor will raise a ValueError.
+
+        Since a DM channel is a kind of channel, this handler is a subclass of DiscordChannelHandler.
+
+        Args:
+                bot_token (str): The authentication token of the Bot to send the message with.
+                user_id (int): The ID of the user to send the message to.
+                level (int, optional): The level at which to log. Defaults to logging.NOTSET.
+                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+        &#34;&#34;&#34;
+
+        def __init__(
+                self,
+                bot_token: str,
+                user_id: int,
+                level: int = logging.NOTSET,
+                msg_creator: MessageCreator = None,
+        ) -&gt; None:
+                super().__init__(
+                        bot_token,
+                        self.create_dm_channel(user_id, bot_token),
+                        level=level,
+                        msg_creator=msg_creator,
+                )
+
+        def create_dm_channel(self, user_id: int, bot_token: str) -&gt; int:
+                &#34;&#34;&#34;Create a DM channel through the discord API.
+
+                Args:
+                        user_id (int): The ID of the user to create a DM channel with.
+
+                Returns:
+                        int: The ID of the DM channel.
+
+                Raises:
+                        ValueError: If the bot was unable to create a DM channel with the user.
+                &#34;&#34;&#34;
+                r = requests.post(
+                        &#34;https://discord.com/api/users/@me/channels&#34;,
+                        json={&#34;recipient_id&#34;: user_id},
+                        headers={&#34;Authorization&#34;: f&#34;Bot {bot_token}&#34;},
+                )
+                if r.status_code &gt;= 300:
+                        raise ValueError(
+                                f&#34;Could not create DM channel with user {user_id}. Response: {r.text}&#34;
+                        )
+                return r.json()[&#34;id&#34;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler" href="discord_channel_handler.html#discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler">DiscordChannelHandler</a></li>
+<li><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler">DiscordHandler</a></li>
+<li>logging.Handler</li>
+<li>logging.Filterer</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="discord_lumberjack.handlers.DiscordDMHandler.create_dm_channel"><code class="name flex">
+<span>def <span class="ident">create_dm_channel</span></span>(<span>self, user_id: int, bot_token: str) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a DM channel through the discord API.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>user_id</code></strong> :&ensp;<code>int</code></dt>
+<dd>The ID of the user to create a DM channel with.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>The ID of the DM channel.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If the bot was unable to create a DM channel with the user.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_dm_channel(self, user_id: int, bot_token: str) -&gt; int:
+        &#34;&#34;&#34;Create a DM channel through the discord API.
+
+        Args:
+                user_id (int): The ID of the user to create a DM channel with.
+
+        Returns:
+                int: The ID of the DM channel.
+
+        Raises:
+                ValueError: If the bot was unable to create a DM channel with the user.
+        &#34;&#34;&#34;
+        r = requests.post(
+                &#34;https://discord.com/api/users/@me/channels&#34;,
+                json={&#34;recipient_id&#34;: user_id},
+                headers={&#34;Authorization&#34;: f&#34;Bot {bot_token}&#34;},
+        )
+        if r.status_code &gt;= 300:
+                raise ValueError(
+                        f&#34;Could not create DM channel with user {user_id}. Response: {r.text}&#34;
+                )
+        return r.json()[&#34;id&#34;]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler" href="discord_channel_handler.html#discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler">DiscordChannelHandler</a></b></code>:
+<ul class="hlist">
+<li><code><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler.emit" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.emit">emit</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler.filter_fields" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.filter_fields">filter_fields</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler.prepare_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages">prepare_messages</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler.send_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.send_messages">send_messages</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler.transform_message" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.transform_message">transform_message</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="discord_lumberjack.handlers.DiscordHandler"><code class="flex name class">
+<span>class <span class="ident">DiscordHandler</span></span>
+<span>(</span><span>url: str, level: int = 0, message_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None, http_headers: Mapping[str, Any] = None, allowed_fields: Iterable[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A base class for logging handlers that send messages to Discord.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
+<dd>The URL to make the request to. This can be a webhook URL, a channel URL, a direct message URL, or any other URL that Discord supports.</dd>
+<dt><strong><code>level</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The level at which to log. Defaults to logging.NOTSET.</dd>
+<dt><strong><code>msg_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
+<dd>An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.</dd>
+<dt><strong><code>http_headers</code></strong> :&ensp;<code>Mapping[str, Any]</code>, optional</dt>
+<dd>A mapping of HTTP headers to send with the request. Defaults to an empty mapping.</dd>
+<dt><strong><code>allowed_fields</code></strong> :&ensp;<code>Iterable[str]</code>, optional</dt>
+<dd>A list of fields that the provided URL accepts. All other fields provided by the message creator will be removed. If None, all fields will be included. Defaults to None.</dd>
+</dl>
+<p>Initializes the instance - basically setting the formatter to None
+and the filter list to empty.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DiscordHandler(logging.Handler):
+        &#34;&#34;&#34;A base class for logging handlers that send messages to Discord.
+
+        Args:
+                url (str): The URL to make the request to. This can be a webhook URL, a channel URL, a direct message URL, or any other URL that Discord supports.
+                level (int, optional): The level at which to log. Defaults to logging.NOTSET.
+                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+                http_headers (Mapping[str, Any], optional): A mapping of HTTP headers to send with the request. Defaults to an empty mapping.
+                allowed_fields (Iterable[str], optional): A list of fields that the provided URL accepts. All other fields provided by the message creator will be removed. If None, all fields will be included. Defaults to None.
+        &#34;&#34;&#34;
+
+        def __init__(
+                self,
+                url: str,
+                level: int = logging.NOTSET,
+                message_creator: MessageCreator = None,
+                http_headers: Mapping[str, Any] = None,
+                allowed_fields: Iterable[str] = None,
+        ) -&gt; None:
+                super().__init__(level=level)
+                self.__url = url
+                self.__session = requests.Session()
+                self.__message_creator = message_creator or _default_message_creator
+                self.__session.headers.update(http_headers or {})
+                self.__allowed_fields = allowed_fields
+
+        def emit(self, record: logging.LogRecord) -&gt; None:
+                &#34;&#34;&#34;Log the messages to Discord.
+
+                This method is non-blocking. The message will be send in the background.
+
+                Args:
+                        record (logging.LogRecord): The log record to send.
+                &#34;&#34;&#34;
+                try:
+                        thread = threading.Thread(
+                                target=self.send_messages, name=&#34;DiscordLumberjack&#34;, args=(record,)
+                        )
+                        thread.start()
+                except Exception:
+                        self.handleError(record)
+
+        def transform_message(self, message: Dict[str, Any]) -&gt; Dict[str, Any]:
+                &#34;&#34;&#34;Transform a message before sending it to Discord.
+
+                This method is called for each message that is sent to Discord. It is called before any fields are filtered out.
+
+                This method may be overridden by subclasses to transform each message as desired by each handler. By default, it keeps the message as is.
+
+                Args:
+                        message (Dict[str, Any]): The message to transform.
+
+                Returns:
+                        Dict[str, Any]: The transformed message.
+                &#34;&#34;&#34;
+                return message
+
+        def filter_fields(self, message: Mapping[str, Any]) -&gt; Dict[str, Any]:
+                &#34;&#34;&#34;Remove any fields that are not in the allowed fields list, returning a new message with only allowed fields.
+
+                Args:
+                        message (Mapping[str, Any]): The message as provided by the message creator.
+
+                Returns:
+                        Dict[str, Any]: The message after removing any fields that are not in the allowed fields list.
+                &#34;&#34;&#34;
+                return {
+                        field: message[field]
+                        for field in message
+                        if self.__allowed_fields is None or field in self.__allowed_fields
+                }
+
+        def prepare_messages(self, record: logging.LogRecord) -&gt; Iterable[Dict[str, Any]]:
+                &#34;&#34;&#34;Given a log record, obtain all the message objects that will be sent to Discord.
+
+                This method gets all the messages from the message creator, calls transform_message, which may be overridden by subclasses to transform each message as desired by each handler, and then filters out any fields that are not in the allowed fields list.
+
+                Args:
+                        record (logging.LogRecord): The log record to send.
+
+                Returns:
+                        Iterable[Dict[str, Any]]: The messages to send to Discord.
+                &#34;&#34;&#34;
+                return (
+                        self.filter_fields(self.transform_message(msg))
+                        for msg in self.__message_creator.messages(record, self.format)
+                )
+
+        def send_messages(self, record: logging.LogRecord):
+                &#34;&#34;&#34;Send the messages returned by prepare_messages to Discord.
+
+                Args:
+                        record (logging.LogRecord): The log record to send messages about
+
+                Raises:
+                        RuntimeError: If the request to Discord was unsuccessful.
+                &#34;&#34;&#34;
+                for msg in self.prepare_messages(record):
+                        response = self.__session.post(self.__url, json=msg)
+                        if response.status_code &gt;= 300:
+                                raise RuntimeError(
+                                        f&#34;Failed to send message to Discord: {response.text}&#34;
+                                )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>logging.Handler</li>
+<li>logging.Filterer</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler" href="discord_channel_handler.html#discord_lumberjack.handlers.discord_channel_handler.DiscordChannelHandler">DiscordChannelHandler</a></li>
+<li><a title="discord_lumberjack.handlers.discord_webhook_handler.DiscordWebhookHandler" href="discord_webhook_handler.html#discord_lumberjack.handlers.discord_webhook_handler.DiscordWebhookHandler">DiscordWebhookHandler</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="discord_lumberjack.handlers.DiscordHandler.emit"><code class="name flex">
+<span>def <span class="ident">emit</span></span>(<span>self, record: logging.LogRecord) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Log the messages to Discord.</p>
+<p>This method is non-blocking. The message will be send in the background.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>logging.LogRecord</code></dt>
+<dd>The log record to send.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def emit(self, record: logging.LogRecord) -&gt; None:
+        &#34;&#34;&#34;Log the messages to Discord.
+
+        This method is non-blocking. The message will be send in the background.
+
+        Args:
+                record (logging.LogRecord): The log record to send.
+        &#34;&#34;&#34;
+        try:
+                thread = threading.Thread(
+                        target=self.send_messages, name=&#34;DiscordLumberjack&#34;, args=(record,)
+                )
+                thread.start()
+        except Exception:
+                self.handleError(record)</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.handlers.DiscordHandler.filter_fields"><code class="name flex">
+<span>def <span class="ident">filter_fields</span></span>(<span>self, message: Mapping[str, Any]) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Remove any fields that are not in the allowed fields list, returning a new message with only allowed fields.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>Mapping[str, Any]</code></dt>
+<dd>The message as provided by the message creator.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Dict[str, Any]</code></dt>
+<dd>The message after removing any fields that are not in the allowed fields list.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def filter_fields(self, message: Mapping[str, Any]) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Remove any fields that are not in the allowed fields list, returning a new message with only allowed fields.
+
+        Args:
+                message (Mapping[str, Any]): The message as provided by the message creator.
+
+        Returns:
+                Dict[str, Any]: The message after removing any fields that are not in the allowed fields list.
+        &#34;&#34;&#34;
+        return {
+                field: message[field]
+                for field in message
+                if self.__allowed_fields is None or field in self.__allowed_fields
+        }</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.handlers.DiscordHandler.prepare_messages"><code class="name flex">
+<span>def <span class="ident">prepare_messages</span></span>(<span>self, record: logging.LogRecord) ‑> Iterable[Dict[str, Any]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Given a log record, obtain all the message objects that will be sent to Discord.</p>
+<p>This method gets all the messages from the message creator, calls transform_message, which may be overridden by subclasses to transform each message as desired by each handler, and then filters out any fields that are not in the allowed fields list.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>logging.LogRecord</code></dt>
+<dd>The log record to send.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Iterable[Dict[str, Any]]</code></dt>
+<dd>The messages to send to Discord.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def prepare_messages(self, record: logging.LogRecord) -&gt; Iterable[Dict[str, Any]]:
+        &#34;&#34;&#34;Given a log record, obtain all the message objects that will be sent to Discord.
+
+        This method gets all the messages from the message creator, calls transform_message, which may be overridden by subclasses to transform each message as desired by each handler, and then filters out any fields that are not in the allowed fields list.
+
+        Args:
+                record (logging.LogRecord): The log record to send.
+
+        Returns:
+                Iterable[Dict[str, Any]]: The messages to send to Discord.
+        &#34;&#34;&#34;
+        return (
+                self.filter_fields(self.transform_message(msg))
+                for msg in self.__message_creator.messages(record, self.format)
+        )</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.handlers.DiscordHandler.send_messages"><code class="name flex">
+<span>def <span class="ident">send_messages</span></span>(<span>self, record: logging.LogRecord)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Send the messages returned by prepare_messages to Discord.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<code>logging.LogRecord</code></dt>
+<dd>The log record to send messages about</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>RuntimeError</code></dt>
+<dd>If the request to Discord was unsuccessful.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def send_messages(self, record: logging.LogRecord):
+        &#34;&#34;&#34;Send the messages returned by prepare_messages to Discord.
+
+        Args:
+                record (logging.LogRecord): The log record to send messages about
+
+        Raises:
+                RuntimeError: If the request to Discord was unsuccessful.
+        &#34;&#34;&#34;
+        for msg in self.prepare_messages(record):
+                response = self.__session.post(self.__url, json=msg)
+                if response.status_code &gt;= 300:
+                        raise RuntimeError(
+                                f&#34;Failed to send message to Discord: {response.text}&#34;
+                        )</code></pre>
+</details>
+</dd>
+<dt id="discord_lumberjack.handlers.DiscordHandler.transform_message"><code class="name flex">
+<span>def <span class="ident">transform_message</span></span>(<span>self, message: Dict[str, Any]) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Transform a message before sending it to Discord.</p>
+<p>This method is called for each message that is sent to Discord. It is called before any fields are filtered out.</p>
+<p>This method may be overridden by subclasses to transform each message as desired by each handler. By default, it keeps the message as is.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>Dict[str, Any]</code></dt>
+<dd>The message to transform.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Dict[str, Any]</code></dt>
+<dd>The transformed message.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transform_message(self, message: Dict[str, Any]) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Transform a message before sending it to Discord.
+
+        This method is called for each message that is sent to Discord. It is called before any fields are filtered out.
+
+        This method may be overridden by subclasses to transform each message as desired by each handler. By default, it keeps the message as is.
+
+        Args:
+                message (Dict[str, Any]): The message to transform.
+
+        Returns:
+                Dict[str, Any]: The transformed message.
+        &#34;&#34;&#34;
+        return message</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="discord_lumberjack.handlers.DiscordWebhookHandler"><code class="flex name class">
+<span>class <span class="ident">DiscordWebhookHandler</span></span>
+<span>(</span><span>url: str, level: int = 0, msg_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None, username: str = None, avatar_url: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A logging handler that sends messages to a Discord webhook.</p>
+<p>The username and avatar fields will override those provided by the message creator if provided here.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
+<dd>The URL to make the request to. This must be a webhook URL.</dd>
+<dt><strong><code>level</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The level at which to log. Defaults to logging.NOTSET.</dd>
+<dt><strong><code>msg_creator</code></strong> :&ensp;<code>MessageCreator</code>, optional</dt>
+<dd>An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.</dd>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The username to use when sending messages. Defaults to None.</dd>
+<dt><strong><code>avatar_url</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The avatar URL to use when sending messages. Defaults to None.</dd>
+</dl>
+<p>Initializes the instance - basically setting the formatter to None
+and the filter list to empty.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DiscordWebhookHandler(DiscordHandler):
+        &#34;&#34;&#34;A logging handler that sends messages to a Discord webhook.
+
+        The username and avatar fields will override those provided by the message creator if provided here.
+
+        Args:
+                url (str): The URL to make the request to. This must be a webhook URL.
+                level (int, optional): The level at which to log. Defaults to logging.NOTSET.
+                msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+                username (str, optional): The username to use when sending messages. Defaults to None.
+                avatar_url (str, optional): The avatar URL to use when sending messages. Defaults to None.
+        &#34;&#34;&#34;
+
+        def __init__(
+                self,
+                url: str,
+                level: int = logging.NOTSET,
+                msg_creator: MessageCreator = None,
+                username: str = None,
+                avatar_url: str = None,
+        ) -&gt; None:
+                super().__init__(
+                        url,
+                        level=level,
+                        message_creator=msg_creator,
+                        allowed_fields=(
+                                &#34;content&#34;,
+                                &#34;username&#34;,
+                                &#34;avatar_url&#34;,
+                                &#34;tts&#34;,
+                                &#34;embeds&#34;,
+                                &#34;allowed_mentions&#34;,
+                                &#34;components&#34;,
+                                &#34;files&#34;,
+                                &#34;payload_json&#34;,
+                                &#34;attachments&#34;,
+                        ),
+                )
+                self.__username = username
+                self.__avatar_url = avatar_url
+
+        def transform_message(self, message: Dict[str, Any]) -&gt; Dict[str, Any]:
+                &#34;&#34;&#34;Replace the username and avatar fields set by the message creator (if any) with those provided to the handler (if any).
+
+                Args:
+                        message (Dict[str, Any]): The message provided by the message creator.
+
+                Returns:
+                        Dict[str, Any]: The transformed message.
+                &#34;&#34;&#34;
+                message = message.copy()
+                if self.__username:
+                        message[&#34;username&#34;] = self.__username
+                if self.__avatar_url:
+                        message[&#34;avatar_url&#34;] = self.__avatar_url
+                return message</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler">DiscordHandler</a></li>
+<li>logging.Handler</li>
+<li>logging.Filterer</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="discord_lumberjack.handlers.DiscordWebhookHandler.transform_message"><code class="name flex">
+<span>def <span class="ident">transform_message</span></span>(<span>self, message: Dict[str, Any]) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Replace the username and avatar fields set by the message creator (if any) with those provided to the handler (if any).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>Dict[str, Any]</code></dt>
+<dd>The message provided by the message creator.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Dict[str, Any]</code></dt>
+<dd>The transformed message.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transform_message(self, message: Dict[str, Any]) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Replace the username and avatar fields set by the message creator (if any) with those provided to the handler (if any).
+
+        Args:
+                message (Dict[str, Any]): The message provided by the message creator.
+
+        Returns:
+                Dict[str, Any]: The transformed message.
+        &#34;&#34;&#34;
+        message = message.copy()
+        if self.__username:
+                message[&#34;username&#34;] = self.__username
+        if self.__avatar_url:
+                message[&#34;avatar_url&#34;] = self.__avatar_url
+        return message</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler">DiscordHandler</a></b></code>:
+<ul class="hlist">
+<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.emit" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.emit">emit</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.filter_fields" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.filter_fields">filter_fields</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages">prepare_messages</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.send_messages" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler.send_messages">send_messages</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#handlers">Handlers</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>
@@ -77,6 +797,35 @@ from .discord_dm_handler import DiscordDMHandler</code></pre>
 <li><code><a title="discord_lumberjack.handlers.discord_dm_handler" href="discord_dm_handler.html">discord_lumberjack.handlers.discord_dm_handler</a></code></li>
 <li><code><a title="discord_lumberjack.handlers.discord_handler" href="discord_handler.html">discord_lumberjack.handlers.discord_handler</a></code></li>
 <li><code><a title="discord_lumberjack.handlers.discord_webhook_handler" href="discord_webhook_handler.html">discord_lumberjack.handlers.discord_webhook_handler</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="discord_lumberjack.handlers.DiscordChannelHandler" href="#discord_lumberjack.handlers.DiscordChannelHandler">DiscordChannelHandler</a></code></h4>
+</li>
+<li>
+<h4><code><a title="discord_lumberjack.handlers.DiscordDMHandler" href="#discord_lumberjack.handlers.DiscordDMHandler">DiscordDMHandler</a></code></h4>
+<ul class="">
+<li><code><a title="discord_lumberjack.handlers.DiscordDMHandler.create_dm_channel" href="#discord_lumberjack.handlers.DiscordDMHandler.create_dm_channel">create_dm_channel</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="discord_lumberjack.handlers.DiscordHandler" href="#discord_lumberjack.handlers.DiscordHandler">DiscordHandler</a></code></h4>
+<ul class="">
+<li><code><a title="discord_lumberjack.handlers.DiscordHandler.emit" href="#discord_lumberjack.handlers.DiscordHandler.emit">emit</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.DiscordHandler.filter_fields" href="#discord_lumberjack.handlers.DiscordHandler.filter_fields">filter_fields</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.DiscordHandler.prepare_messages" href="#discord_lumberjack.handlers.DiscordHandler.prepare_messages">prepare_messages</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.DiscordHandler.send_messages" href="#discord_lumberjack.handlers.DiscordHandler.send_messages">send_messages</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.DiscordHandler.transform_message" href="#discord_lumberjack.handlers.DiscordHandler.transform_message">transform_message</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="discord_lumberjack.handlers.DiscordWebhookHandler" href="#discord_lumberjack.handlers.DiscordWebhookHandler">DiscordWebhookHandler</a></code></h4>
+<ul class="">
+<li><code><a title="discord_lumberjack.handlers.DiscordWebhookHandler.transform_message" href="#discord_lumberjack.handlers.DiscordWebhookHandler.transform_message">transform_message</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
