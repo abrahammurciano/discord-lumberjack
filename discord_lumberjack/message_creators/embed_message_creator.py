@@ -129,7 +129,7 @@ class EmbedMessageCreator(MessageCreator):
 		Returns:
 			str: The URL to set the author's icon to.
 		"""
-		return f"https://github.com/abrahammurciano/discord-lumberjack/raw/main/images/{record.levelname.lower()}.png"
+		return f"https://raw.githubusercontent.com/abrahammurciano/discord-lumberjack/main/images/{record.levelname.lower()}.png"
 
 	def get_author_name(self, record: LogRecord) -> str:
 		"""Returns the string to set the embed's author's name to. By default this is the name of the log level. FOr example "ERROR", "INFO", etc.
