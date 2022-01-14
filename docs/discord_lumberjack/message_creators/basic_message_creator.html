@@ -22,43 +22,6 @@
 <h1 class="title">Module <code>discord_lumberjack.message_creators.basic_message_creator</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">from logging import LogRecord
-from typing import Callable, Iterable
-from .message_creator import MessageCreator
-from .chunks import chunks
-
-
-class BasicMessageCreator(MessageCreator):
-        &#34;&#34;&#34;
-        This class creates messages displayed in plain text.
-
-        Args:
-                monospace (bool, optional): Whether or not to format the messages as monospace. Defaults to True.
-        &#34;&#34;&#34;
-
-        def __init__(self, monospace: bool = True) -&gt; None:
-                super().__init__()
-                if monospace:
-                        self.__prefix = &#34;```&#34;
-                        self.__suffix = &#34;```&#34;
-                        self.__content_limit = 1994
-                else:
-                        self.__prefix = &#34;&#34;
-                        self.__suffix = &#34;&#34;
-                        self.__content_limit = 2000
-
-        def messages(
-                self, record: LogRecord, format_func: Callable[[LogRecord], str]
-        ) -&gt; Iterable[dict]:
-                return (
-                        {&#34;content&#34;: self.__prefix + &#34;&#34;.join(chunk) + self.__suffix}
-                        for chunk in chunks(format_func(record), self.__content_limit)
-                )</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -80,37 +43,6 @@ class BasicMessageCreator(MessageCreator):
 <dt><strong><code>monospace</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether or not to format the messages as monospace. Defaults to True.</dd>
 </dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class BasicMessageCreator(MessageCreator):
-        &#34;&#34;&#34;
-        This class creates messages displayed in plain text.
-
-        Args:
-                monospace (bool, optional): Whether or not to format the messages as monospace. Defaults to True.
-        &#34;&#34;&#34;
-
-        def __init__(self, monospace: bool = True) -&gt; None:
-                super().__init__()
-                if monospace:
-                        self.__prefix = &#34;```&#34;
-                        self.__suffix = &#34;```&#34;
-                        self.__content_limit = 1994
-                else:
-                        self.__prefix = &#34;&#34;
-                        self.__suffix = &#34;&#34;
-                        self.__content_limit = 2000
-
-        def messages(
-                self, record: LogRecord, format_func: Callable[[LogRecord], str]
-        ) -&gt; Iterable[dict]:
-                return (
-                        {&#34;content&#34;: self.__prefix + &#34;&#34;.join(chunk) + self.__suffix}
-                        for chunk in chunks(format_func(record), self.__content_limit)
-                )</code></pre>
-</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></li>

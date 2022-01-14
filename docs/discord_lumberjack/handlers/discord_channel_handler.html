@@ -22,40 +22,6 @@
 <h1 class="title">Module <code>discord_lumberjack.handlers.discord_channel_handler</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">import logging
-
-from discord_lumberjack.message_creators import MessageCreator
-from .discord_handler import DiscordHandler
-
-
-class DiscordChannelHandler(DiscordHandler):
-        &#34;&#34;&#34;A logging handler that sends messages to a Discord Channel from a Bot.
-
-        Args:
-                bot_token (str): The authentication token of the Bot to send the message with.
-                channel_id (int): The ID of the Channel to send the message to.
-                level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
-        &#34;&#34;&#34;
-
-        def __init__(
-                self,
-                bot_token: str,
-                channel_id: int,
-                level: int = logging.NOTSET,
-                message_creator: MessageCreator = None,
-        ) -&gt; None:
-                super().__init__(
-                        f&#34;https://discord.com/api/channels/{channel_id}/messages&#34;,
-                        level=level,
-                        message_creator=message_creator,
-                        http_headers={&#34;Authorization&#34;: f&#34;Bot {bot_token}&#34;},
-                )</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -85,34 +51,6 @@ class DiscordChannelHandler(DiscordHandler):
 </dl>
 <p>Initializes the instance - basically setting the formatter to None
 and the filter list to empty.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DiscordChannelHandler(DiscordHandler):
-        &#34;&#34;&#34;A logging handler that sends messages to a Discord Channel from a Bot.
-
-        Args:
-                bot_token (str): The authentication token of the Bot to send the message with.
-                channel_id (int): The ID of the Channel to send the message to.
-                level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-                message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
-        &#34;&#34;&#34;
-
-        def __init__(
-                self,
-                bot_token: str,
-                channel_id: int,
-                level: int = logging.NOTSET,
-                message_creator: MessageCreator = None,
-        ) -&gt; None:
-                super().__init__(
-                        f&#34;https://discord.com/api/channels/{channel_id}/messages&#34;,
-                        level=level,
-                        message_creator=message_creator,
-                        http_headers={&#34;Authorization&#34;: f&#34;Bot {bot_token}&#34;},
-                )</code></pre>
-</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler" href="discord_handler.html#discord_lumberjack.handlers.discord_handler.DiscordHandler">DiscordHandler</a></li>

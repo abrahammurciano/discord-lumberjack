@@ -22,18 +22,6 @@
 <h1 class="title">Module <code>discord_lumberjack.message_creators.chunks</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">from typing import Iterable, Sequence, TypeVar
-
-T = TypeVar(&#34;T&#34;)
-
-
-def chunks(seq: Sequence[T], chunk_size: int) -&gt; Iterable[Sequence[T]]:
-        return (seq[pos : pos + chunk_size] for pos in range(0, len(seq), chunk_size))</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -47,13 +35,6 @@ def chunks(seq: Sequence[T], chunk_size: int) -&gt; Iterable[Sequence[T]]:
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def chunks(seq: Sequence[T], chunk_size: int) -&gt; Iterable[Sequence[T]]:
-        return (seq[pos : pos + chunk_size] for pos in range(0, len(seq), chunk_size))</code></pre>
-</details>
 </dd>
 </dl>
 </section>
