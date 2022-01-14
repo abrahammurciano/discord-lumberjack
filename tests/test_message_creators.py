@@ -1,7 +1,6 @@
 from logging import LogRecord, Logger
 from typing import Callable
-from discord_lumberjack.message_creators import MessageCreator
-from discord_lumberjack.handlers import DiscordHandler
+from discord_lumberjack.message_creators import MessageCreator, EmbedMessageCreator
 from tests.utils import assert_messages_sent
 
 
@@ -38,3 +37,16 @@ def test_long_log_message(logger: Logger):
 		"This is a long message that should be split into multiple messages." * 100
 	)
 	assert_messages_sent(logger)
+
+
+def test_long_message_field_order(
+	embed_message_creator: EmbedMessageCreator, long_record: LogRecord
+):
+	msgs = list(embed_message_creator.messages(long_record, lambda _: ""))
+	assert msgs, "Messages should not be empty."
+	embed1 = msgs[0]["embeds"][0]
+	embed2 = msgs[0]["embeds"][1]
+	assert (
+		not embed1["description"] and embed2["description"]
+	), "Description should be in the second embed, not the first."
+  

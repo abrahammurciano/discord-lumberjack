@@ -44,7 +44,7 @@ class EmbedMessageCreator(MessageCreator):
 		embeds = [first_embed]
 		for field_setter in self.__field_setters:
 			for new_embed in field_setter.set_field(
-				first_embed, record, None, self.get_new_embed, 6000
+				embeds[-1], record, None, self.get_new_embed, 6000
 			):
 				embeds.append(new_embed)
 		for embed in embeds:

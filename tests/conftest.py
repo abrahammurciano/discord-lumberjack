@@ -32,6 +32,11 @@ def message_creator(request) -> MessageCreator:
 
 
 @fixture
+def embed_message_creator() -> EmbedMessageCreator:
+	return EmbedMessageCreator()
+
+
+@fixture
 def record() -> LogRecord:
 	return logging.LogRecord(
 		name="dummy_record",
@@ -39,6 +44,19 @@ def record() -> LogRecord:
 		pathname="path/to/dummy/file.py",
 		lineno=1,
 		msg="This is a dummy log record.",
+		args=(),
+		exc_info=None,
+	)
+
+
+@fixture
+def long_record() -> LogRecord:
+	return logging.LogRecord(
+		name="long_record",
+		level=logging.DEBUG,
+		pathname="/this/path/should/be/in/second/embed",
+		lineno=1,
+		msg="This message is more than 256 characters. " * 8,
 		args=(),
 		exc_info=None,
 	)
@@ -80,7 +98,7 @@ def handler_with_untextable_user() -> DiscordDMHandler:
 
 @fixture
 def logger(handler: DiscordHandler) -> Logger:
-	return utils.logger(handler, handler.__class__.name)
+	return utils.logger(handler, handler.__class__.name or "unknown_handler")
 
 
 @fixture
