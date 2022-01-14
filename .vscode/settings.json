@@ -2,10 +2,10 @@
 	"python.pythonPath": "/home/abraham/Documents/discord_lumberjack/.venv/bin/python",
 	"mypy.targets": [
 		"discord_lumberjack",
-		"test"
+		"tests"
 	],
 	"python.testing.pytestArgs": [
-		"test"
+		"tests"
 	],
 	"python.testing.unittestEnabled": false,
 	"python.testing.pytestEnabled": true,

@@ -12,7 +12,7 @@ class DiscordWebhookHandler(DiscordHandler):
 	Args:
 		url (str): The URL to make the request to. This must be a webhook URL.
 		level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-		msg_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+		message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
 		username (str, optional): The username to use when sending messages. Defaults to None.
 		avatar_url (str, optional): The avatar URL to use when sending messages. Defaults to None.
 	"""
@@ -21,27 +21,11 @@ class DiscordWebhookHandler(DiscordHandler):
 		self,
 		url: str,
 		level: int = logging.NOTSET,
-		msg_creator: MessageCreator = None,
+		message_creator: MessageCreator = None,
 		username: str = None,
 		avatar_url: str = None,
 	) -> None:
-		super().__init__(
-			url,
-			level=level,
-			message_creator=msg_creator,
-			allowed_fields=(
-				"content",
-				"username",
-				"avatar_url",
-				"tts",
-				"embeds",
-				"allowed_mentions",
-				"components",
-				"files",
-				"payload_json",
-				"attachments",
-			),
-		)
+		super().__init__(url, level=level, message_creator=message_creator)
 		self.__username = username
 		self.__avatar_url = avatar_url
 

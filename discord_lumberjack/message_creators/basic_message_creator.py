@@ -1,8 +1,7 @@
 from logging import LogRecord
-from typing import Callable, Iterable, Sequence, TypeVar
+from typing import Callable, Iterable
 from .message_creator import MessageCreator
-
-T = TypeVar("T")
+from .chunks import chunks
 
 
 class BasicMessageCreator(MessageCreator):
@@ -29,8 +28,5 @@ class BasicMessageCreator(MessageCreator):
 	) -> Iterable[dict]:
 		return (
 			{"content": self.__prefix + "".join(chunk) + self.__suffix}
-			for chunk in self.__chunks(format_func(record), self.__content_limit)
+			for chunk in chunks(format_func(record), self.__content_limit)
 		)
-
-	def __chunks(self, seq: Sequence[T], chunk_size: int) -> Iterable[Sequence[T]]:
-		return (seq[pos : pos + chunk_size] for pos in range(0, len(seq), chunk_size))
