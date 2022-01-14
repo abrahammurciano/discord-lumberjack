@@ -1,20 +1,17 @@
 from logging import LogRecord, Logger
 from typing import Callable
 from discord_lumberjack.message_creators import MessageCreator
-from discord_lumberjack.message_creators.embed import EmbedField
+from discord_lumberjack.handlers import DiscordHandler
+from test.utils import assert_messages_sent
 
 
-def test_message_creators(
-	logger: Logger,
-	function_that_raises: Callable[[], None],
-	wait_for_messages: Callable[[], None],
-):
+def test_message_creators(logger: Logger, function_that_raises: Callable[[], None]):
 	logger.debug("This is a debug message.")
 	try:
 		function_that_raises()
 	except ValueError:
 		logger.exception("An exception was thrown.")
-	wait_for_messages()
+	assert_messages_sent(logger)
 
 
 def test_messages(message_creator: MessageCreator, record: LogRecord):
@@ -34,3 +31,10 @@ def test_messages(message_creator: MessageCreator, record: LogRecord):
 					assert isinstance(field, dict), "Embed field should be a dict."
 					assert field["name"], "Embed field should have a name."
 					assert field["value"], "Embed field should have a value."
+
+
+def test_long_log_message(logger: Logger):
+	logger.info(
+		"This is a long message that should be split into multiple messages." * 100
+	)
+	assert_messages_sent(logger)

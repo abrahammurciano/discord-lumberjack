@@ -1,11 +1,10 @@
 from pytest import fixture
-from unittest.mock import patch
-from typing import Generator, Optional, Callable
-import threading
+from typing import Callable
 import os
 import logging
 from logging import LogRecord, Logger
-import random
+from test import utils
+from dotenv import load_dotenv
 from discord_lumberjack.handlers import (
 	DiscordHandler,
 	DiscordChannelHandler,
@@ -18,54 +17,15 @@ from discord_lumberjack.message_creators import (
 	MessageCreator,
 )
 
-
-@fixture(autouse=True)
-def raise_exceptions_in_threads() -> Generator[None, None, None]:
-	"""
-	Replaces Thread with a a wrapper to record any exceptions and re-raise them after test execution.
-	In case multiple threads raise exceptions only one will be raised.
-	"""
-
-	class ThreadWrapper(threading.Thread):
-		def __init__(self, *args, **kwargs):
-			super().__init__(*args, **kwargs)
-			self.last_exception: Optional[BaseException] = None
-
-		def run(self):
-			try:
-				super().run()
-			except BaseException as e:
-				self.last_exception = e
-
-		def join(self, timeout: float | None = None) -> None:
-			super().join(timeout=timeout)
-			if self.last_exception:
-				raise self.last_exception
-
-	with patch("threading.Thread", ThreadWrapper):
-		yield
-
-
-@fixture
-def wait_for_messages() -> Callable[[], None]:
-	"""
-	Waits for all message threads to finish.
-	"""
-
-	def _wait_for_messages() -> None:
-		for thread in threading.enumerate():
-			if thread.name == "DiscordLumberjack":
-				thread.join()
-
-	return _wait_for_messages
-
-
-class CustomEmbedMessageCreator(EmbedMessageCreator):
-	pass
+load_dotenv()
 
 
 @fixture(
-	params=[BasicMessageCreator(), EmbedMessageCreator(), CustomEmbedMessageCreator()]
+	params=[
+		BasicMessageCreator(),
+		EmbedMessageCreator(),
+		utils.CustomEmbedMessageCreator(),
+	]
 )
 def message_creator(request) -> MessageCreator:
 	return request.param
@@ -120,20 +80,17 @@ def handler_with_untextable_user() -> DiscordDMHandler:
 
 @fixture
 def logger(handler: DiscordHandler) -> Logger:
-	_logger = logging.getLogger(f"{__name__}.{random.random()}")
-	_logger.setLevel(logging.DEBUG)
-	_logger.addHandler(handler)
-	return _logger
+	return utils.logger(handler, handler.__class__.name)
 
 
 @fixture
 def logger_with_untextable_user(
 	handler_with_untextable_user: DiscordDMHandler,
 ) -> Logger:
-	_logger = logging.getLogger(f"{__name__}.{random.random()}")
-	_logger.setLevel(logging.DEBUG)
-	_logger.addHandler(handler_with_untextable_user)
-	return _logger
+	return utils.logger(
+		handler_with_untextable_user,
+		f"{handler_with_untextable_user.__class__.name}_with_untextable_user",
+	)
 
 
 @fixture

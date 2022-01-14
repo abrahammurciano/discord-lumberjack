@@ -1,9 +1,8 @@
 from logging import LogRecord
-from typing import Callable, Iterable, List, Mapping, Tuple
+from typing import Callable, Generator, Iterable, List, Mapping, Tuple
 from .message_creator import MessageCreator
 from .log_colours import LogColours
-from .embed import Embed, EmbedFieldSetter, empty_embed
-from .chunks import chunks
+from .embed import Embed, EmbedFieldSetter, embed_length, empty_embed
 import datetime as dt
 from itertools import chain
 import traceback
@@ -45,12 +44,40 @@ class EmbedMessageCreator(MessageCreator):
 		embeds = [first_embed]
 		for field_setter in self.__field_setters:
 			for new_embed in field_setter.set_field(
-				first_embed, record, None, self.get_new_embed
+				first_embed, record, None, self.get_new_embed, 6000
 			):
 				embeds.append(new_embed)
 		for embed in embeds:
 			self.__fix_fields(embed)
-		return ({"embeds": embeds_chunk} for embeds_chunk in chunks(embeds, 10))
+		return (
+			{"embeds": embeds_chunk} for embeds_chunk in self.__embed_chunks(embeds)
+		)
+
+	def __embed_chunks(
+		self, embeds: Iterable[Embed]
+	) -> Generator[List[Embed], None, None]:
+		"""This method splits the given embeds into chunks of up to 10, keeping within the limit of 6000 total characters (on certain fields).
+
+		This method assumes that each embed has a length of at most 6000 characters.
+
+		Args:
+			embeds (Iterable[Embed]): The embeds to split.
+
+		Yields:
+			List[Embed]: The embeds in chunks of 10.
+		"""
+		limit = 6000
+		chunk: List[Embed] = []
+		for embed in embeds:
+			length = embed_length(embed)
+			if length < limit and len(chunk) < 10:
+				chunk.append(embed)
+				limit -= length
+			else:
+				yield chunk
+				chunk = [embed]
+				limit = 6000 - length
+		yield chunk
 
 	def get_colour(self, record: LogRecord) -> int:
 		"""Returns the colour to set the embed to.

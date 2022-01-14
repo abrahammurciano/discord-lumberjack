@@ -63,6 +63,29 @@ def empty_embed(n_fields: int = 0) -> Embed:
 	)
 
 
+def embed_length(embed: Embed) -> int:
+	"""Calculates the total length of the size-limited fields of an embed.
+
+	Args:
+		embed (Embed): The embed to calculate the length of.
+
+	Returns:
+		int: The total length of the size-limited fields of the embed.
+	"""
+	return sum(
+		len(string)
+		for string in (
+			embed["title"],
+			embed["description"],
+			embed["footer"]["text"],
+			embed["author"]["name"],
+			*(field["name"] for field in embed["fields"]),
+			*(field["value"] for field in embed["fields"]),
+		)
+		if string
+	)
+
+
 class EmbedFieldSetter:
 	"""Sets a field of an embed as specified by the user, providing a mechanism for not overflowing the embeds.
 
@@ -91,6 +114,7 @@ class EmbedFieldSetter:
 		record: LogRecord,
 		remainder: str = None,
 		new_embed_creator: Callable[[LogRecord], Embed] = None,
+		remaining_global_limit: Optional[int] = None,
 	) -> Generator[Embed, Any, None]:
 		"""[summary]
 
@@ -99,8 +123,13 @@ class EmbedFieldSetter:
 			record (LogRecord): The log record containing the data to set.
 			remainder (str, optional): The text that should have been in the same field of the previous embed but couldn't be set due to length limitations. Defaults to None.
 			new_embed_creator (Callable[[LogRecord], Embed], optional): A function that generates a new embed and sets whatever fields will persist across all the embeds that a log record is split up into. Defaults to a function that returns an empty embed.
+			remaining_global_limit (Optional[int], optional): The number of remaining characters that can be added to limited fields of the embed before it is split up. Defaults to None.
+
 		Yields:
 			Embed: This function yields any embeds which it creates.
+
+		Raises:
+			KeyError: If the key chain is invalid.
 		"""
 		full_value = remainder or self.__get_value(record)
 		if full_value is None:
@@ -108,12 +137,26 @@ class EmbedFieldSetter:
 		msg_component: Any = embed
 		for key in self.__key_chain:
 			msg_component = msg_component[key]
-		msg_component[self.__last_key] = (
-			full_value[: self.__limit] if isinstance(full_value, str) else full_value
+		limit = (
+			min(self.__limit, remaining_global_limit)
+			if self.__limit and remaining_global_limit
+			else self.__limit or remaining_global_limit
 		)
-		remainder = full_value[self.__limit :] if self.__limit is not None else None
+		if isinstance(full_value, str):
+			value = full_value[:limit]
+			remainder = full_value[limit:] if limit is not None else None
+		else:
+			value = full_value
+			remainder = None
+		msg_component[self.__last_key] = value
 		if remainder:
 			new_embed_creator = new_embed_creator or (lambda _: empty_embed())
 			new_embed = new_embed_creator(record)
 			yield new_embed
-			yield from self.set_field(new_embed, record, remainder, new_embed_creator)
+			yield from self.set_field(
+				new_embed,
+				record,
+				remainder,
+				new_embed_creator,
+				remaining_global_limit - len(value) if remaining_global_limit else None,
+			)
