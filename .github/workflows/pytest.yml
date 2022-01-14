@@ -24,12 +24,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+          pip install -r requirements-dev.txt
       - name: Install discord_lumberjack
         run: |
           pip install .
-      - name: Install PyTest
-        run: |
-          pip install pytest
       - name: Run tests
         env:
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
