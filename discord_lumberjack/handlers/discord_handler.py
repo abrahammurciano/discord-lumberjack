@@ -124,14 +124,17 @@ class DiscordHandler(logging.Handler):
 			response = self.__session.post(self.__url, json=message)
 		return response
 
-	def _assert_messages_sent(self):
+	def flush(self, raise_exceptions=True):
 		"""Block until all logged messages are sent to Discord.
 
-		If an exception was raised while sending a message, it will be re-raised. This method exists purely for testing purposes.
+		If an exception was raised while sending a message, it will be re-raised. You may want to call this method before exiting your program, to ensure that all logged messages are sent.
+
+		Args:
+			raise_exceptions (bool, optional): Whether to re-raise any exceptions that were raised while sending messages. Defaults to True.
 
 		Raises:
-			Exception: If an exception was raised while sending a message.
+			Exception: If an exception was raised while sending a message, and `raise_exceptions` is True.
 		"""
 		self.__queue.join()
-		if self.__exception:
+		if self.__exception and raise_exceptions:
 			raise self.__exception
