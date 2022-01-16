@@ -2,7 +2,7 @@
 .. include:: ../README.md
 """
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 __author__ = "Abraham Murciano"
 
 from . import handlers

@@ -1,4 +1,4 @@
-from typing import Any, Callable, List, Mapping, Tuple
+from typing import Callable, List, Tuple
 from logging import LogRecord, Logger
 import logging
 import random
@@ -18,7 +18,7 @@ def assert_messages_sent(logger: Logger):
 	"""
 	for handler in logger.handlers:
 		if isinstance(handler, DiscordHandler):
-			handler._assert_messages_sent()
+			handler.flush()
 
 
 def logger(handler: DiscordHandler, name: str = ""):
