@@ -75,6 +75,23 @@ and the filter list to empty.</p></div>
 <dd>The log record to send.</dd>
 </dl></div>
 </dd>
+<dt id="discord_lumberjack.handlers.discord_handler.DiscordHandler.flush"><code class="name flex">
+<span>def <span class="ident">flush</span></span>(<span>self, raise_exceptions=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Block until all logged messages are sent to Discord.</p>
+<p>If an exception was raised while sending a message, it will be re-raised. You may want to call this method before exiting your program, to ensure that all logged messages are sent.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>raise_exceptions</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to re-raise any exceptions that were raised while sending messages. Defaults to True.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>Exception</code></dt>
+<dd>If an exception was raised while sending a message, and <code>raise_exceptions</code> is True.</dd>
+</dl></div>
+</dd>
 <dt id="discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages"><code class="name flex">
 <span>def <span class="ident">prepare_messages</span></span>(<span>self, record: logging.LogRecord) ‑> Iterable[Dict[str, Any]]</span>
 </code></dt>
@@ -132,6 +149,7 @@ and the filter list to empty.</p></div>
 <h4><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler" href="#discord_lumberjack.handlers.discord_handler.DiscordHandler">DiscordHandler</a></code></h4>
 <ul class="">
 <li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.emit" href="#discord_lumberjack.handlers.discord_handler.DiscordHandler.emit">emit</a></code></li>
+<li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.flush" href="#discord_lumberjack.handlers.discord_handler.DiscordHandler.flush">flush</a></code></li>
 <li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages" href="#discord_lumberjack.handlers.discord_handler.DiscordHandler.prepare_messages">prepare_messages</a></code></li>
 <li><code><a title="discord_lumberjack.handlers.discord_handler.DiscordHandler.transform_message" href="#discord_lumberjack.handlers.discord_handler.DiscordHandler.transform_message">transform_message</a></code></li>
 </ul>
