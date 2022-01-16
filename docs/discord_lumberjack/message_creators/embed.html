@@ -209,7 +209,7 @@ dict(one=1, two=2)</p></div>
 </dd>
 <dt id="discord_lumberjack.message_creators.embed.EmbedFieldSetter"><code class="flex name class">
 <span>class <span class="ident">EmbedFieldSetter</span></span>
-<span>(</span><span>key_chain: Sequence[str | int], get_value: Callable[[logging.LogRecord], Any], limit: Optional[int] = None)</span>
+<span>(</span><span>key_chain: Sequence[Union[str, int]], get_value: Callable[[logging.LogRecord], Any], limit: Optional[int] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets a field of an embed as specified by the user, providing a mechanism for not overflowing the embeds.</p>
