@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from logging import LogRecord, Formatter
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, Dict
 
 
 class MessageCreator(ABC):
@@ -13,7 +13,7 @@ class MessageCreator(ABC):
 	@abstractmethod
 	def messages(
 		self, record: LogRecord, format_func: Callable[[LogRecord], str]
-	) -> Iterable[dict[str, Any]]:
+	) -> Iterable[Dict[str, Any]]:
 		"""
 		Format a log record to a discord message object (dict).
 
