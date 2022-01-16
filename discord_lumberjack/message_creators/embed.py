@@ -1,4 +1,4 @@
-from typing import Any, Callable, Generator, List, Optional, Sequence, TypedDict
+from typing import Any, Callable, Generator, List, Optional, Sequence, TypedDict, Union
 from logging import LogRecord
 
 
@@ -97,7 +97,7 @@ class EmbedFieldSetter:
 
 	def __init__(
 		self,
-		key_chain: Sequence[str | int],
+		key_chain: Sequence[Union[str, int]],
 		get_value: Callable[[LogRecord], Any],
 		limit: Optional[int] = None,
 	):
