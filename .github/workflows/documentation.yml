@@ -38,3 +38,4 @@ jobs:
           commit-message: generated docs with pdoc3
           branch: documentation
           token: ${{ secrets.PERSONAL_GH_TOKEN }}
+          labels: automerge,documentation
