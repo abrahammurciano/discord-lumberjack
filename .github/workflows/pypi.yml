@@ -28,3 +28,27 @@ jobs:
         run: |
           python setup.py sdist bdist_wheel
           twine upload dist/*
+      - name: Get next version
+        id: get-next-version
+        run: |
+          echo ::set-output name=next-version::$(python -c 'from discord_lumberjack import __version__ as v;s=v.rsplit(".",1);print(s[0],".",int(s[1])+1,sep="")')
+      - name: Bump version
+        run: |
+          sed -i 's/^__version__ .*$/__version__ = "${{ steps.get-next-version.outputs.next-version }}"/g' discord_lumberjack/__init__.py
+      - name: Check for modified files
+        id: git-check
+        run: echo ::set-output name=modified::$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)
+      - name: Create Pull Request
+        if: steps.git-check.outputs.modified == 'true'
+        uses: peter-evans/create-pull-request@v3
+        with:
+          title: Set version to ${{ steps.get-next-version.outputs.next-version }}
+          commit-message: set version to ${{ steps.get-next-version.outputs.next-version }}
+          branch: version-${{ steps.get-next-version.outputs.next-version }}
+          token: ${{ secrets.PERSONAL_GH_TOKEN }}
+      - name: Create Milestone
+        uses: WyriHaximus/github-action-create-milestone@v1.1.0
+        with:
+          title: v${{ steps.get-next-version.outputs.next-version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_GH_TOKEN }}
