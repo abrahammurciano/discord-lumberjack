@@ -25,6 +25,7 @@ class DiscordHandler(logging.Handler):
 		level: int = logging.NOTSET,
 		message_creator: MessageCreator = None,
 		http_headers: Mapping[str, Any] = None,
+		flush_on_exit: bool = True,
 	) -> None:
 		super().__init__(level=level)
 		self.__url = url
@@ -33,9 +34,14 @@ class DiscordHandler(logging.Handler):
 		self.__session.headers.update(http_headers or {})
 		self.__queue: Queue[logging.LogRecord] = Queue()
 		self.__thread = threading.Thread(
-			target=self.__consume, name="DiscordLumberjack", daemon=True
+			target=self.__consume, name="DiscordLumberjack", daemon=not flush_on_exit
 		)
 		self.__thread.start()
+		self.__sentinel = logging.LogRecord("", 0, "", 0, None, None, None)
+		if flush_on_exit:
+			threading.Thread(
+				target=self.__cleanup, name="DiscordLumberjackCleanup"
+			).start()
 		self.__exception: Optional[Exception] = None
 
 	def emit(self, record: logging.LogRecord) -> None:
@@ -79,11 +85,32 @@ class DiscordHandler(logging.Handler):
 			for msg in self.__message_creator.messages(record, self.format)
 		)
 
+	def flush(self, raise_exceptions=True):
+		"""Block until all logged messages are sent to Discord.
+
+		If an exception was raised while sending a message, it will be re-raised if `raise_exceptions` is True.
+
+		You do not need to call this method to ensure all messages are sent before exiting the main thread unless you have set `flush_on_exit` in the constructor to False.
+
+		Args:
+			raise_exceptions (bool, optional): Whether to re-raise any exceptions that were raised while sending messages. Defaults to True.
+
+		Raises:
+			Exception: If an exception was raised while sending a message, and `raise_exceptions` is True.
+		"""
+		self.__queue.join()
+		if self.__exception and raise_exceptions:
+			raise self.__exception
+
 	def __consume(self) -> None:
 		"""In an infinite loop, consume a log record from the queue, convert it to its message objects, and send them to Discord."""
 		while True:
 			try:
 				record = self.__queue.get()
+				if record is self.__sentinel:
+					# Main thread has exited and all messages have been sent.
+					# We can exit the thread.
+					return
 				for msg in self.prepare_messages(record):
 					self.__send_message(msg)
 			except Exception as e:
@@ -124,17 +151,7 @@ class DiscordHandler(logging.Handler):
 			response = self.__session.post(self.__url, json=message)
 		return response
 
-	def flush(self, raise_exceptions=True):
-		"""Block until all logged messages are sent to Discord.
-
-		If an exception was raised while sending a message, it will be re-raised. You may want to call this method before exiting your program, to ensure that all logged messages are sent.
-
-		Args:
-			raise_exceptions (bool, optional): Whether to re-raise any exceptions that were raised while sending messages. Defaults to True.
-
-		Raises:
-			Exception: If an exception was raised while sending a message, and `raise_exceptions` is True.
-		"""
-		self.__queue.join()
-		if self.__exception and raise_exceptions:
-			raise self.__exception
+	def __cleanup(self):
+		"""Waits for main thread to exit, then enqueues a sentinel to indicate that all messages have been sent."""
+		threading.main_thread().join()
+		self.__queue.put(self.__sentinel)
