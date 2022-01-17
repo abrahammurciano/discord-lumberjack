@@ -5,12 +5,7 @@ import logging
 from logging import LogRecord, Logger
 from tests import utils
 from dotenv import load_dotenv
-from discord_lumberjack.handlers import (
-	DiscordHandler,
-	DiscordChannelHandler,
-	DiscordWebhookHandler,
-	DiscordDMHandler,
-)
+from discord_lumberjack.handlers import DiscordHandler, DiscordDMHandler
 from discord_lumberjack.message_creators import (
 	BasicMessageCreator,
 	EmbedMessageCreator,
@@ -62,25 +57,7 @@ def long_record() -> LogRecord:
 	)
 
 
-@fixture(
-	params=[
-		lambda message_creator: DiscordWebhookHandler(
-			os.environ["WEBHOOK_URL"],
-			username="Webhook Handler",
-			message_creator=message_creator,
-		),
-		lambda message_creator: DiscordChannelHandler(
-			os.environ["BOT_TOKEN"],
-			int(os.environ["CHANNEL_ID"]),
-			message_creator=message_creator,
-		),
-		lambda message_creator: DiscordDMHandler(
-			os.environ["BOT_TOKEN"],
-			int(os.environ["DISCORD_DM_ID"]),
-			message_creator=message_creator,
-		),
-	]
-)
+@fixture(params=utils.handler_factories)
 def handler(message_creator: MessageCreator, request) -> DiscordHandler:
 	_handler = request.param(message_creator)
 	_handler.setFormatter(
@@ -98,7 +75,7 @@ def handler_with_untextable_user() -> DiscordDMHandler:
 
 @fixture
 def logger(handler: DiscordHandler) -> Logger:
-	return utils.logger(handler, handler.__class__.name or "unknown_handler")
+	return utils.logger([handler], handler.__class__.name or "unknown_handler")
 
 
 @fixture
@@ -106,8 +83,16 @@ def logger_with_untextable_user(
 	handler_with_untextable_user: DiscordDMHandler,
 ) -> Logger:
 	return utils.logger(
-		handler_with_untextable_user,
+		[handler_with_untextable_user],
 		f"{handler_with_untextable_user.__class__.name}_with_untextable_user",
+	)
+
+
+@fixture
+def logger_with_all_handlers(message_creator: MessageCreator) -> Logger:
+	return utils.logger(
+		(factory(message_creator) for factory in utils.handler_factories),
+		"all_handlers",
 	)
 
 
