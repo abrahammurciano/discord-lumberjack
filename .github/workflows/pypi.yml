@@ -46,6 +46,7 @@ jobs:
           commit-message: set version to ${{ steps.get-next-version.outputs.next-version }}
           branch: version-${{ steps.get-next-version.outputs.next-version }}
           token: ${{ secrets.PERSONAL_GH_TOKEN }}
+          base: main
       - name: Create Milestone
         uses: WyriHaximus/github-action-create-milestone@v1.1.0
         with:
