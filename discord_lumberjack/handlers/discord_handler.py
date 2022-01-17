@@ -19,7 +19,14 @@ class DiscordHandler(logging.Handler):
 		http_headers (Mapping[str, Any], optional): A mapping of HTTP headers to send with the request. Defaults to an empty mapping.
 	"""
 
-	def __init__(self, url: str, level: int = logging.NOTSET, message_creator: MessageCreator = None, http_headers: Mapping[str, Any] = None, flush_on_exit: bool = True) -> None:
+	def __init__(
+		self,
+		url: str,
+		level: int = logging.NOTSET,
+		message_creator: MessageCreator = None,
+		http_headers: Mapping[str, Any] = None,
+		flush_on_exit: bool = True,
+	) -> None:
 		super().__init__(level=level)
 		self.__url = url
 		self.__session = requests.Session()
