@@ -1,9 +1,15 @@
-from typing import Callable, List, Tuple
+import os
+from typing import Callable, Iterable, List, Tuple
 from logging import LogRecord, Logger
 import logging
 import random
-from discord_lumberjack.handlers import DiscordHandler
-from discord_lumberjack.message_creators import EmbedMessageCreator
+from discord_lumberjack.handlers import (
+	DiscordHandler,
+	DiscordWebhookHandler,
+	DiscordChannelHandler,
+	DiscordDMHandler,
+)
+from discord_lumberjack.message_creators import EmbedMessageCreator, MessageCreator
 from discord_lumberjack.message_creators.embed import Embed
 
 
@@ -21,18 +27,20 @@ def assert_messages_sent(logger: Logger):
 			handler.flush()
 
 
-def logger(handler: DiscordHandler, name: str = ""):
+def logger(handlers: Iterable[DiscordHandler], name: str = ""):
 	"""Create a logger with the given handler.
 
 	Args:
-		handler (DiscordHandler): The handler to use for the logger.
+		handlers (Iterable[DiscordHandler]): The handlers to use for the logger.
+		name (str, optional): The name of the logger. Defaults to the empty string.
 
 	Returns:
 		Logger: The created logger.
 	"""
 	_logger = Logger(f"{name}.{random.random()}")
 	_logger.setLevel(logging.DEBUG)
-	_logger.addHandler(handler)
+	for handler in handlers:
+		_logger.addHandler(handler)
 	return _logger
 
 
@@ -73,3 +81,22 @@ class CustomEmbedMessageCreator(EmbedMessageCreator):
 			*super().get_field_definitions(),
 			(lambda _: "Field Name 2", lambda _: "Field Value 2"),
 		]
+
+
+handler_factories: List[Callable[[MessageCreator], DiscordHandler]] = [
+	lambda message_creator: DiscordWebhookHandler(
+		os.environ["WEBHOOK_URL"],
+		username="Webhook Handler",
+		message_creator=message_creator,
+	),
+	lambda message_creator: DiscordChannelHandler(
+		os.environ["BOT_TOKEN"],
+		int(os.environ["CHANNEL_ID"]),
+		message_creator=message_creator,
+	),
+	lambda message_creator: DiscordDMHandler(
+		os.environ["BOT_TOKEN"],
+		int(os.environ["DISCORD_DM_ID"]),
+		message_creator=message_creator,
+	),
+]
