@@ -39,3 +39,4 @@ jobs:
           commit-message: autoformatted code with black-with-tabs
           branch: autoformat
           token: ${{ secrets.PERSONAL_GH_TOKEN }}
+          labels: automerge
