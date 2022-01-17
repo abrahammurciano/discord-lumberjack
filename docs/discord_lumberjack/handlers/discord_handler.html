@@ -34,7 +34,7 @@
 <dl>
 <dt id="discord_lumberjack.handlers.discord_handler.DiscordHandler"><code class="flex name class">
 <span>class <span class="ident">DiscordHandler</span></span>
-<span>(</span><span>url: str, level: int = 0, message_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None, http_headers: Mapping[str, Any] = None)</span>
+<span>(</span><span>url: str, level: int = 0, message_creator: <a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="../message_creators/message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a> = None, http_headers: Mapping[str, Any] = None, flush_on_exit: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A base class for logging handlers that send messages to Discord.</p>
@@ -80,7 +80,8 @@ and the filter list to empty.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Block until all logged messages are sent to Discord.</p>
-<p>If an exception was raised while sending a message, it will be re-raised. You may want to call this method before exiting your program, to ensure that all logged messages are sent.</p>
+<p>If an exception was raised while sending a message, it will be re-raised if <code>raise_exceptions</code> is True.</p>
+<p>You do not need to call this method to ensure all messages are sent before exiting the main thread unless you have set <code>flush_on_exit</code> in the constructor to False.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>raise_exceptions</code></strong> :&ensp;<code>bool</code>, optional</dt>
