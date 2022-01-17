@@ -1,3 +1,4 @@
+import time
 from pytest import raises
 from logging import Logger
 from tests.utils import assert_messages_sent
@@ -14,3 +15,15 @@ def test_untextable_user(logger_with_untextable_user: Logger):
 	with raises(Exception):
 		logger_with_untextable_user.info(f"test_untextable_user failed.")
 		assert_messages_sent(logger_with_untextable_user)
+
+
+def test_log_speed(logger_with_all_handlers: Logger):
+	"""Make sure calls to the logger return quickly."""
+	start = time.time()
+	logger_with_all_handlers.info(f"testing log speed...")
+	end = time.time()
+	diff = end - start
+	limit = 0.01
+	assert (
+		diff < limit
+	), f"Logging took too long. Limit is {limit} seconds. Took {diff} seconds."
