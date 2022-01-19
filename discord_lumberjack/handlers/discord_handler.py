@@ -4,9 +4,11 @@ import time
 from typing import Any, Dict, Iterable, Mapping, Optional
 import requests
 from discord_lumberjack.message_creators import BasicMessageCreator, MessageCreator
-from queue import Queue
+from queue import Full, Queue
 
 _default_message_creator = BasicMessageCreator()
+
+_logger = logging.getLogger("discord_lumberjack")
 
 
 class DiscordHandler(logging.Handler):
@@ -17,6 +19,8 @@ class DiscordHandler(logging.Handler):
 		level (int, optional): The level at which to log. Defaults to logging.NOTSET.
 		message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
 		http_headers (Mapping[str, Any], optional): A mapping of HTTP headers to send with the request. Defaults to an empty mapping.
+		queue_limit (int, optional): The maximum number of log records to queue before ignoring new ones. Defaults to 0, which means no limit.
+		queue_warning_limit (int | None, optional): The maximum number of log records to queue before issuing a warning. Defaults to 1000.
 	"""
 
 	def __init__(
@@ -26,13 +30,15 @@ class DiscordHandler(logging.Handler):
 		message_creator: MessageCreator = None,
 		http_headers: Mapping[str, Any] = None,
 		flush_on_exit: bool = True,
+		queue_limit: int = 0,
+		queue_warning_limit: Optional[int] = 1000,
 	) -> None:
 		super().__init__(level=level)
 		self.__url = url
 		self.__session = requests.Session()
 		self.__message_creator = message_creator or _default_message_creator
 		self.__session.headers.update(http_headers or {})
-		self.__queue: Queue[logging.LogRecord] = Queue()
+		self.__queue: Queue[logging.LogRecord] = Queue(queue_limit)
 		self.__thread = threading.Thread(
 			target=self.__consume, name="DiscordLumberjack", daemon=not flush_on_exit
 		)
@@ -43,16 +49,40 @@ class DiscordHandler(logging.Handler):
 				target=self.__cleanup, name="DiscordLumberjackCleanup"
 			).start()
 		self.__exception: Optional[Exception] = None
+		self.__queue_very_big = False
+		self.__queue_warning_limit = queue_warning_limit
 
 	def emit(self, record: logging.LogRecord) -> None:
 		"""Log the messages to Discord.
 
-		This method is non-blocking. The message will be send in the background.
+		This method is non-blocking. The message will be send in the background. If the queue is full, the message will be dropped. If this happens, or if the queue size is unlimited and the queue is larger than the warning limit, a warning will be issued.
 
 		Args:
 			record (logging.LogRecord): The log record to send.
 		"""
-		self.__queue.put(record)
+		try:
+			self.__queue.put(record, block=False)
+			if (
+				self.__queue.maxsize <= 0
+				and self.__queue_warning_limit is not None
+				and self.__queue.qsize() > self.__queue_warning_limit
+			):
+				if not self.__queue_very_big:
+					self.__queue_very_big = True
+					_logger.warning(
+						f"Logging queue of {self.__class__.__name__} is getting large."
+						" Consider logging less often or setting a queue_limit,"
+						" otherwise you may have a memory leak."
+					)
+			else:
+				self.__queue_very_big = False
+		except Full:
+			if not self.__queue_very_big:
+				self.__queue_very_big = True
+				_logger.warning(
+					f"Logging queue of {self.__class__.__name__} is full. Ignoring"
+					" future log messages until more space is available."
+				)
 
 	def transform_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
 		"""Transform a message before sending it to Discord.
