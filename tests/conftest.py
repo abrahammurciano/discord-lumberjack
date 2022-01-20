@@ -113,7 +113,7 @@ def function_that_raises() -> Callable[[], None]:
 
 
 @fixture
-def root_logger(handler: DiscordHandler) -> Generator[Logger, None, None]:
+def root_logger() -> Generator[Logger, None, None]:
 	_root_logger = logging.getLogger()
 	_handlers = _root_logger.handlers
 	_filters = _root_logger.filters
@@ -121,7 +121,7 @@ def root_logger(handler: DiscordHandler) -> Generator[Logger, None, None]:
 
 	_root_logger.handlers = []
 	_root_logger.filters = []
-	_root_logger.addHandler(handler)
+	_root_logger.addHandler(utils.handler_factories[0](BasicMessageCreator()))
 	_root_logger.setLevel(logging.DEBUG)
 	yield _root_logger
 
