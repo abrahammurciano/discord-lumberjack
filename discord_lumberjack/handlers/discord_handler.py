@@ -13,7 +13,19 @@ _default_message_creator = BasicMessageCreator()
 
 def _record_str(record: logging.LogRecord) -> str:
 	msg = record.getMessage()
-	return f'"{msg[50:]}"{"..." if len(msg) > 50 else ""}'
+	return f'"{msg[:50]}"{"..." if len(msg) > 50 else ""}'
+
+
+class _RecursionPreventionFilter(logging.Filter):
+	def __init__(self, silenced_threads: Iterable[int]) -> None:
+		super().__init__()
+		self.__silenced_threads = set(silenced_threads)
+
+	def filter(self, record: logging.LogRecord) -> bool:
+		return not (
+			record.name.startswith("discord_lumberjack.")
+			or record.thread in self.__silenced_threads
+		)
 
 
 class DiscordHandler(logging.Handler):
@@ -40,16 +52,18 @@ class DiscordHandler(logging.Handler):
 		self.__message_creator = message_creator or _default_message_creator
 		self.__session.headers.update(http_headers or {})
 		self.__queue: Queue[logging.LogRecord] = Queue()
-		self.__thread = threading.Thread(
+		self.__consumer_thread = threading.Thread(
 			target=self.__consume, name="DiscordLumberjack", daemon=not flush_on_exit
 		)
-		self.__thread.start()
+		self.__consumer_thread.start()
 		self.__sentinel = logging.LogRecord("", 0, "", 0, None, None, None)
 		if flush_on_exit:
 			threading.Thread(
 				target=self.__cleanup, name="DiscordLumberjackCleanup"
 			).start()
 		self.__exception: Optional[Exception] = None
+		if self.__consumer_thread.ident:
+			self.addFilter(_RecursionPreventionFilter((self.__consumer_thread.ident,)))
 
 	def emit(self, record: logging.LogRecord) -> None:
 		"""Log the messages to Discord.
@@ -106,7 +120,9 @@ class DiscordHandler(logging.Handler):
 		Raises:
 			Exception: If an exception was raised while sending a message, and `raise_exceptions` is True.
 		"""
-		logger.debug("Flushing: Waiting for queue to empty...")
+		logger.debug(
+			f"Flushing: Waiting for queue (size={self.__queue.qsize()}) to empty..."
+		)
 		self.__queue.join()
 		logger.debug("Flushing: Queue has been emptied.")
 		if self.__exception and raise_exceptions:
@@ -131,6 +147,10 @@ class DiscordHandler(logging.Handler):
 				self.handleError(record)
 			finally:
 				self.__queue.task_done()
+				logger.debug(
+					f"Consumer: Finished processing message: {_record_str(record)}."
+					f" Queue size: {self.__queue.qsize()}"
+				)
 
 	def __send_message(self, message: Mapping[str, Any]) -> None:
 		"""Send a message to Discord.
