@@ -28,6 +28,17 @@ jobs:
         run: |
           python setup.py sdist bdist_wheel
           twine upload dist/*
+      - name: Get current version
+        id: get-current-version
+        run: |
+          echo ::set-output name=current-version::$(python setup.py --version)
+      - name: Close Current Milestone
+        uses: Beakyn/gha-close-milestone@v1.1.1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository: ${{ github.repository }}
+          milestone-title: v${{ steps.get-current-version.outputs.current-version }}
       - name: Get next version
         id: get-next-version
         run: |
@@ -35,11 +46,14 @@ jobs:
       - name: Bump version
         run: |
           sed -i 's/^__version__ .*$/__version__ = "${{ steps.get-next-version.outputs.next-version }}"/g' discord_lumberjack/__init__.py
-      - name: Check for modified files
-        id: git-check
-        run: echo ::set-output name=modified::$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)
+      - name: Create Milestone
+        id: create-milestone
+        uses: WyriHaximus/github-action-create-milestone@v1.1.0
+        with:
+          title: v${{ steps.get-next-version.outputs.next-version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_GH_TOKEN }}
       - name: Create Pull Request
-        if: steps.git-check.outputs.modified == 'true'
         uses: peter-evans/create-pull-request@v3
         with:
           title: Set version to ${{ steps.get-next-version.outputs.next-version }}
@@ -48,9 +62,4 @@ jobs:
           token: ${{ secrets.PERSONAL_GH_TOKEN }}
           base: main
           labels: automerge
-      - name: Create Milestone
-        uses: WyriHaximus/github-action-create-milestone@v1.1.0
-        with:
-          title: v${{ steps.get-next-version.outputs.next-version }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_GH_TOKEN }}
+          milestone: ${{ steps.create-milestone.outputs.number }}
