@@ -110,9 +110,7 @@ class DiscordHandler(logging.Handler):
 		Raises:
 			Exception: If an exception was raised while sending a message, and `raise_exceptions` is True.
 		"""
-		logger.debug(
-			f"Flushing: Waiting for queue (size={self.__queue.qsize()}) to empty..."
-		)
+		logger.debug(f"Flushing: Waiting for queue to empty...")
 		self.__queue.join()
 		logger.debug("Flushing: Queue has been emptied.")
 		if self.__exception and raise_exceptions:
@@ -139,7 +137,6 @@ class DiscordHandler(logging.Handler):
 				self.__queue.task_done()
 				logger.debug(
 					f"Consumer: Finished processing message: {_record_str(record)}."
-					f" Queue size: {self.__queue.qsize()}"
 				)
 
 	def __send_message(self, message: Mapping[str, Any]) -> None:
