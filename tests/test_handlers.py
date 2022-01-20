@@ -29,7 +29,7 @@ def test_log_speed(logger_with_all_handlers: Logger):
 	), f"Logging took too long. Limit is {limit} seconds. Took {diff} seconds."
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(300)
 def test_recursion(root_logger: Logger):
 	"""Make sure there's no infinite recursion when a DiscordHandler is added to the root logger."""
 	root_logger.info(f"Pop goes the stack...")
