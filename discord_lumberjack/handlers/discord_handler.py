@@ -6,7 +6,14 @@ import requests
 from discord_lumberjack.message_creators import BasicMessageCreator, MessageCreator
 from queue import Queue
 
+logger = logging.getLogger(__name__)
+
 _default_message_creator = BasicMessageCreator()
+
+
+def _record_str(record: logging.LogRecord) -> str:
+	msg = record.getMessage()
+	return f'"{msg[50:]}"{"..." if len(msg) > 50 else ""}'
 
 
 class DiscordHandler(logging.Handler):
@@ -52,6 +59,7 @@ class DiscordHandler(logging.Handler):
 		Args:
 			record (logging.LogRecord): The log record to send.
 		"""
+		logger.debug(f"Enqueuing message {_record_str(record)}")
 		self.__queue.put(record)
 
 	def transform_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
@@ -98,7 +106,9 @@ class DiscordHandler(logging.Handler):
 		Raises:
 			Exception: If an exception was raised while sending a message, and `raise_exceptions` is True.
 		"""
+		logger.debug("Flushing: Waiting for queue to empty...")
 		self.__queue.join()
+		logger.debug("Flushing: Queue has been emptied.")
 		if self.__exception and raise_exceptions:
 			raise self.__exception
 
@@ -108,12 +118,15 @@ class DiscordHandler(logging.Handler):
 			try:
 				record = self.__queue.get()
 				if record is self.__sentinel:
-					# Main thread has exited and all messages have been sent.
-					# We can exit the thread.
+					logger.debug("Consumer: Sentinel record received, exiting thread.")
 					return
+				logger.debug(f"Consumer: Got message from queue: {_record_str(record)}")
 				for msg in self.prepare_messages(record):
 					self.__send_message(msg)
 			except Exception as e:
+				logger.exception(
+					f"Consumer: Exception while consuming: {_record_str(record)}."
+				)
 				self.__exception = e
 				self.handleError(record)
 			finally:
@@ -146,6 +159,10 @@ class DiscordHandler(logging.Handler):
 		retry_interval = initial_interval
 		response = self.__session.post(self.__url, json=message)
 		while response.status_code == 429:
+			logger.warning(
+				"Message was rejected due to too many requests. Waiting"
+				f" {retry_interval} seconds..."
+			)
 			time.sleep(retry_interval)
 			retry_interval *= 2
 			response = self.__session.post(self.__url, json=message)
@@ -153,5 +170,7 @@ class DiscordHandler(logging.Handler):
 
 	def __cleanup(self):
 		"""Waits for main thread to exit, then enqueues a sentinel to indicate that all messages have been sent."""
+		logger.debug("Cleanup: Waiting for main thread to exit...")
 		threading.main_thread().join()
+		logger.debug("Cleanup: Main thread exited. Signaling consumer to exit.")
 		self.__queue.put(self.__sentinel)

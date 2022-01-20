@@ -2,7 +2,7 @@ from pytest import fixture
 from typing import Callable
 import os
 import logging
-from logging import LogRecord, Logger
+from logging import FileHandler, LogRecord, Logger
 from tests import utils
 from dotenv import load_dotenv
 from discord_lumberjack.handlers import DiscordHandler, DiscordDMHandler
@@ -13,6 +13,14 @@ from discord_lumberjack.message_creators import (
 )
 
 load_dotenv()
+dl_logger = logging.getLogger("discord_lumberjack")
+dl_logger.setLevel(logging.DEBUG)
+dl_handler = FileHandler("discord_lumberjack.tests.log", mode="w")
+dl_handler.setLevel(logging.DEBUG)
+dl_handler.setFormatter(
+	logging.Formatter("%(asctime)s: %(name)s: %(levelname)s: %(message)s")
+)
+dl_logger.addHandler(dl_handler)
 
 
 @fixture(
