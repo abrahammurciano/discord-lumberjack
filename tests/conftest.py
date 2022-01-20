@@ -1,5 +1,5 @@
 from pytest import fixture
-from typing import Callable
+from typing import Callable, Generator
 import os
 import logging
 from logging import FileHandler, LogRecord, Logger
@@ -110,3 +110,21 @@ def function_that_raises() -> Callable[[], None]:
 		raise ValueError("This is a test ValueError exception.")
 
 	return _function_that_raises
+
+
+@fixture
+def root_logger(handler: DiscordHandler) -> Generator[Logger, None, None]:
+	_root_logger = logging.getLogger()
+	_handlers = _root_logger.handlers
+	_filters = _root_logger.filters
+	_log_level = _root_logger.level
+
+	_root_logger.handlers = []
+	_root_logger.filters = []
+	_root_logger.addHandler(handler)
+	_root_logger.setLevel(logging.DEBUG)
+	yield _root_logger
+
+	_root_logger.handlers = _handlers
+	_root_logger.filters = _filters
+	_root_logger.level = _log_level
