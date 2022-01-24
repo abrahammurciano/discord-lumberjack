@@ -6,6 +6,7 @@ from typing import Any, Dict, Iterable, Mapping, Optional
 import requests
 from discord_lumberjack.message_creators import BasicMessageCreator, MessageCreator
 from queue import PriorityQueue, Queue
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ class DiscordHandler(logging.Handler):
 			None,
 			None,
 		)
+		self.__queue_warning_size = queue_warning_size or math.inf
 		self.__issue_warning = True
 		if flush_on_exit:
 			threading.Thread(
@@ -78,8 +80,9 @@ class DiscordHandler(logging.Handler):
 		"""
 		logger.debug(f"Enqueuing message {_record_str(record)}")
 		self.__queue.put((time.time(), time.time(), record))
-		if self.__issue_warning and self.__queue.qsize() > self.queue_warning_size:
+		if self.__issue_warning and self.__queue.qsize() > self.__queue_warning_size:
 			self.__queue.put((0, time.time(), self.__warning_record))
+			logger.warning(f"The queue exceeded the specified size of {self.__queue_warning_size}"
 			self.__issue_warning = False
 
 	def transform_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
