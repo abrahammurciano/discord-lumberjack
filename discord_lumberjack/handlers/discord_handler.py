@@ -82,7 +82,9 @@ class DiscordHandler(logging.Handler):
 		self.__queue.put((time.time(), time.time(), record))
 		if self.__issue_warning and self.__queue.qsize() > self.__queue_warning_size:
 			self.__queue.put((0, time.time(), self.__warning_record))
-			logger.warning(f"The queue exceeded the specified size of {self.__queue_warning_size}"
+			logger.warning(
+				f"The queue exceeded the specified size of {self.__queue_warning_size}"
+			)
 			self.__issue_warning = False
 
 	def transform_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
