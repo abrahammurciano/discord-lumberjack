@@ -17,6 +17,8 @@ jobs:
           python-version: "3.8"
       - name: Get Poetry
         uses: abatilo/actions-poetry@v2.1.3
+      - name: Install
+        run: poetry install
       - name: Generate Documentation
         run: poetry run pdoc discord_lumberjack --html -o docs/ -f -c show_source_code=False
       - name: Check for modified files

@@ -17,6 +17,8 @@ jobs:
           python-version: "3.10"
       - name: Get Poetry
         uses: abatilo/actions-poetry@v2.1.3
+      - name: Install
+        run: poetry install
       - name: Format code
         run: poetry run black discord_lumberjack
       - name: Check for modified files
