@@ -20,7 +20,7 @@ jobs:
           python-version: "3.8"
       - name: Get Poetry
         uses: abatilo/actions-poetry@v2.1.3
-      - name: Install discord_lumberjack
+      - name: Install
         run: poetry install
       - name: Run tests
         env:
