@@ -15,23 +15,15 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
-      - name: Upgrade pip
-        run: |
-          pip install --upgrade pip
-      - name: Install dependencies
-        run: |
-          pip install setuptools wheel twine
-      - name: Build and publish
-        env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: |
-          python setup.py sdist bdist_wheel
-          twine upload dist/*
+      - name: Get Poetry
+        uses: abatilo/actions-poetry@v2.1.3
+      - name: Build
+        run: poetry build
+      - name: Publish
+        run: poetry publish -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }}
       - name: Get current version
         id: get-current-version
-        run: |
-          echo ::set-output name=current-version::$(python setup.py --version)
+        run: echo ::set-output name=current-version::$(poetry version -s)
       - name: Close Current Milestone
         uses: Beakyn/gha-close-milestone@v1.1.1
         env:
@@ -39,18 +31,16 @@ jobs:
         with:
           repository: ${{ github.repository }}
           milestone-title: v${{ steps.get-current-version.outputs.current-version }}
-      - name: Get next version
-        id: get-next-version
-        run: |
-          echo ::set-output name=next-version::$(python -c 'from discord_lumberjack import __version__ as v;s=v.rsplit(".",1);print(s[0],".",int(s[1])+1,sep="")')
       - name: Bump version
+        id: bump-version
         run: |
-          sed -i 's/^__version__ .*$/__version__ = "${{ steps.get-next-version.outputs.next-version }}"/g' discord_lumberjack/__init__.py
+          poetry version patch
+          echo ::set-output name=new-version::$(poetry version -s)
       - name: Create Milestone
         id: create-milestone
         uses: WyriHaximus/github-action-create-milestone@v1.1.0
         with:
-          title: v${{ steps.get-next-version.outputs.next-version }}
+          title: v${{ steps.bump-version.outputs.new-version }}
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_GH_TOKEN }}
       - name: Create Pull Request

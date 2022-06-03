@@ -1,9 +1,20 @@
 """
 .. include:: ../README.md
 """
+import importlib.metadata
 
-__version__ = "1.1.0"
-__author__ = "Abraham Murciano"
+try:
+    __version__ = importlib.metadata.version(__package__)
+except importlib.metadata.PackageNotFoundError:
+    import toml
+
+    __version__ = (
+        toml.load("pyproject.toml")
+        .get("tool", {})
+        .get("post-install", {})
+        .get("version", "unknown")
+        + "-dev"
+    )
 
 from . import handlers
 from . import message_creators

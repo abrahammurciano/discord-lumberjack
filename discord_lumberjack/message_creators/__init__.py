@@ -9,9 +9,10 @@
 from .message_creator import MessageCreator
 from .basic_message_creator import BasicMessageCreator
 from .embed_message_creator import EmbedMessageCreator
+from .embed_long_message_creator import EmbedLongMessageCreator
 
 __all__ = (
-	"MessageCreator",
-	"BasicMessageCreator",
-	"EmbedMessageCreator",
+    "MessageCreator",
+    "BasicMessageCreator",
+    "EmbedMessageCreator",
 )
