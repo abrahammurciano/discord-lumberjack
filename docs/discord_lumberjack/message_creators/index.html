@@ -46,6 +46,10 @@
 <dd>
 <div class="desc"></div>
 </dd>
+<dt><code class="name"><a title="discord_lumberjack.message_creators.embed_long_message_creator" href="embed_long_message_creator.html">discord_lumberjack.message_creators.embed_long_message_creator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt><code class="name"><a title="discord_lumberjack.message_creators.embed_message_creator" href="embed_message_creator.html">discord_lumberjack.message_creators.embed_message_creator</a></code></dt>
 <dd>
 <div class="desc"></div>
@@ -69,7 +73,7 @@
 <dl>
 <dt id="discord_lumberjack.message_creators.BasicMessageCreator"><code class="flex name class">
 <span>class <span class="ident">BasicMessageCreator</span></span>
-<span>(</span><span>monospace: bool = True)</span>
+<span>(</span><span>monospace: bool = True, lang: str = 'ansi')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This class creates messages displayed in plain text.</p>
@@ -77,6 +81,8 @@
 <dl>
 <dt><strong><code>monospace</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether or not to format the messages as monospace. Defaults to True.</dd>
+<dt><strong><code>lang</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The language to be used by Discord syntax highlighting. Defaults to "ansi". This is only considered if monospace is True.</dd>
 </dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -110,6 +116,10 @@
 <ul class="hlist">
 <li><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></li>
 <li>abc.ABC</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="discord_lumberjack.message_creators.embed_long_message_creator.EmbedLongMessageCreator" href="embed_long_message_creator.html#discord_lumberjack.message_creators.embed_long_message_creator.EmbedLongMessageCreator">EmbedLongMessageCreator</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -430,6 +440,7 @@
 <li><code><a title="discord_lumberjack.message_creators.basic_message_creator" href="basic_message_creator.html">discord_lumberjack.message_creators.basic_message_creator</a></code></li>
 <li><code><a title="discord_lumberjack.message_creators.chunks" href="chunks.html">discord_lumberjack.message_creators.chunks</a></code></li>
 <li><code><a title="discord_lumberjack.message_creators.embed" href="embed.html">discord_lumberjack.message_creators.embed</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_long_message_creator" href="embed_long_message_creator.html">discord_lumberjack.message_creators.embed_long_message_creator</a></code></li>
 <li><code><a title="discord_lumberjack.message_creators.embed_message_creator" href="embed_message_creator.html">discord_lumberjack.message_creators.embed_message_creator</a></code></li>
 <li><code><a title="discord_lumberjack.message_creators.log_colours" href="log_colours.html">discord_lumberjack.message_creators.log_colours</a></code></li>
 <li><code><a title="discord_lumberjack.message_creators.message_creator" href="message_creator.html">discord_lumberjack.message_creators.message_creator</a></code></li>

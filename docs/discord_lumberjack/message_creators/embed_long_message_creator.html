@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>discord_lumberjack.message_creators.basic_message_creator API documentation</title>
+<title>discord_lumberjack.message_creators.embed_long_message_creator API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>discord_lumberjack.message_creators.basic_message_creator</code></h1>
+<h1 class="title">Module <code>discord_lumberjack.message_creators.embed_long_message_creator</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -32,29 +32,38 @@
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="discord_lumberjack.message_creators.basic_message_creator.BasicMessageCreator"><code class="flex name class">
-<span>class <span class="ident">BasicMessageCreator</span></span>
-<span>(</span><span>monospace: bool = True, lang: str = 'ansi')</span>
+<dt id="discord_lumberjack.message_creators.embed_long_message_creator.EmbedLongMessageCreator"><code class="flex name class">
+<span>class <span class="ident">EmbedLongMessageCreator</span></span>
+<span>(</span><span>colours: Mapping[int, int] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class creates messages displayed in plain text.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>monospace</code></strong> :&ensp;<code>bool</code>, optional</dt>
-<dd>Whether or not to format the messages as monospace. Defaults to True.</dd>
-<dt><strong><code>lang</code></strong> :&ensp;<code>str</code>, optional</dt>
-<dd>The language to be used by Discord syntax highlighting. Defaults to "ansi". This is only considered if monospace is True.</dd>
-</dl></div>
+<div class="desc"><p>Similar to the <code>EmbedMessageCreator</code>, but it switches the title and the description.</p>
+<p>This is useful for when your log messages might be longer than Discord's limit for embed titles. This class therefore puts the message in the description and the path to the file and line number in the title.</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator">EmbedMessageCreator</a></li>
 <li><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></li>
 <li>abc.ABC</li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="discord_lumberjack.message_creators.message_creator.MessageCreator" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator">MessageCreator</a></b></code>:
+<li><code><b><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator">EmbedMessageCreator</a></b></code>:
 <ul class="hlist">
-<li><code><a title="discord_lumberjack.message_creators.message_creator.MessageCreator.messages" href="message_creator.html#discord_lumberjack.message_creators.message_creator.MessageCreator.messages">messages</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_icon_url" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_icon_url">get_author_icon_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_name" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_name">get_author_name</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_url" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_author_url">get_author_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_colour" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_colour">get_colour</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_description" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_description">get_description</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_field_definitions" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_field_definitions">get_field_definitions</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_footer_icon_url" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_footer_icon_url">get_footer_icon_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_footer_text" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_footer_text">get_footer_text</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_image_url" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_image_url">get_image_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_new_embed" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_new_embed">get_new_embed</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_thumbnail_url" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_thumbnail_url">get_thumbnail_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_timestamp" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_timestamp">get_timestamp</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_title" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_title">get_title</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_url" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.get_url">get_url</a></code></li>
+<li><code><a title="discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.messages" href="embed_message_creator.html#discord_lumberjack.message_creators.embed_message_creator.EmbedMessageCreator.messages">messages</a></code></li>
 </ul>
 </li>
 </ul>
@@ -76,7 +85,7 @@
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="discord_lumberjack.message_creators.basic_message_creator.BasicMessageCreator" href="#discord_lumberjack.message_creators.basic_message_creator.BasicMessageCreator">BasicMessageCreator</a></code></h4>
+<h4><code><a title="discord_lumberjack.message_creators.embed_long_message_creator.EmbedLongMessageCreator" href="#discord_lumberjack.message_creators.embed_long_message_creator.EmbedLongMessageCreator">EmbedLongMessageCreator</a></code></h4>
 </li>
 </ul>
 </li>
