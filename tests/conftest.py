@@ -121,7 +121,7 @@ def function_that_raises() -> Callable[[], None]:
 
 @fixture
 def root_logger() -> Generator[Logger, None, None]:
-    _root_logger = logging.getLogger()
+    _root_logger = logging.getLogger("tests")
     _handlers = _root_logger.handlers
     _filters = _root_logger.filters
     _log_level = _root_logger.level
