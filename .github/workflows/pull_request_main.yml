@@ -1,16 +1,17 @@
 name: Run Tests
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
+    paths:
+      - "discord_lumberjack/**"
   workflow_dispatch:
 
 jobs:
   test:
+    name: Run Tests
     runs-on: ubuntu-latest
+    if: '!(input.pull_request.labels.contains("notest"))'
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
