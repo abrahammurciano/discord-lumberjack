@@ -3,13 +3,16 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - discord_lumberjack/**
+      - tests/**
   workflow_dispatch:
 
 jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    if: '!(input.pull_request.labels.contains("notest"))'
+    if: "! contains(github.event.pull_request.labels.*.name, 'notest')"
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2

@@ -1,0 +1,17 @@
+name: Run Tests
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - discord_lumberjack/**
+      - tests/**
+
+jobs:
+  test:
+    name: Skip Tests (Label 'notest')
+    runs-on: ubuntu-latest
+    if: "contains(github.event.pull_request.labels.*.name, 'notest')"
+    steps:
+      - name: Skip Tests
+        run: echo "No tests required. Label 'notest' is present."
