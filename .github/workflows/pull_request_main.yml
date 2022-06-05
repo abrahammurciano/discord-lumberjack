@@ -3,8 +3,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "discord_lumberjack/**"
   workflow_dispatch:
 
 jobs:
