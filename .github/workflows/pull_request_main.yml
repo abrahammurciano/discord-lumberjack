@@ -9,7 +9,7 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    if: '!(input.pull_request.labels.contains("notest"))'
+    if: "! contains(github.event.pull_request.labels.*.name, 'notest')"
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
