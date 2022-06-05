@@ -6,9 +6,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  setup:
-    name: Setup
+  post_merge_main:
+    name: Format and Document
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
@@ -20,34 +22,10 @@ jobs:
         uses: abatilo/actions-poetry@v2.1.3
       - name: Install
         run: poetry install
-
-  format:
-    name: Format Code
-    runs-on: ubuntu-latest
-    needs:
-      - setup
-    steps:
       - name: Format code
         run: poetry run black discord_lumberjack
-
-  documentation:
-    name: Generate Documentation
-    runs-on: ubuntu-latest
-    needs:
-      - setup
-    steps:
       - name: Generate Documentation
         run: poetry run pdoc discord_lumberjack --html -o docs/ -f -c show_source_code=False
-
-  apply:
-    name: Apply Changes
-    permissions:
-      pull-requests: write
-    runs-on: ubuntu-latest
-    needs:
-      - format
-      - documentation
-    steps:
       - name: Check for modified files
         id: git-check
         run: echo ::set-output name=modified::$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)
