@@ -1,0 +1,15 @@
+name: Test
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - discord_lumberjack/**
+      - tests/**
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip Tests (Code unchanged)
+        run: echo "No tests required. Source code didn't change."
