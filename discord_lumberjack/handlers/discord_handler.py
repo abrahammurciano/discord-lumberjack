@@ -20,10 +20,10 @@ class DiscordHandler(logging.Handler):
     """A base class for logging handlers that send messages to Discord.
 
     Args:
-            url (str): The URL to make the request to. This can be a webhook URL, a channel URL, a direct message URL, or any other URL that Discord supports.
-            level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-            message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
-            http_headers (Mapping[str, Any], optional): A mapping of HTTP headers to send with the request. Defaults to an empty mapping.
+        url (str): The URL to make the request to. This can be a webhook URL, a channel URL, a direct message URL, or any other URL that Discord supports.
+        level (int, optional): The level at which to log. Defaults to logging.NOTSET.
+        message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+        http_headers (Mapping[str, Any], optional): A mapping of HTTP headers to send with the request. Defaults to an empty mapping.
     """
 
     def __init__(

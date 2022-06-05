@@ -24,10 +24,10 @@ class MessageCreator(ABC):
         Subclasses should make sure the messages it creates are not too long to be rejected by discord. If they are, they should split the message into multiple messages.
 
         Args:
-                record (LogRecord): The log record to format into a message.
-                format_func (Callable[[LogRecord], str]): A function which formats a log record into a string. This function is expected to originate from a `Formatter` instance.
+            record (LogRecord): The log record to format into a message.
+            format_func (Callable[[LogRecord], str]): A function which formats a log record into a string. This function is expected to originate from a `Formatter` instance.
 
         Returns:
-                Iterable[dict]: An iterable of discord message objects (dicts). The reason it returns many messages is in case there is too much information in the log record to fit into a single message.
+            Iterable[dict]: An iterable of discord message objects (dicts). The reason it returns many messages is in case there is too much information in the log record to fit into a single message.
         """
         pass

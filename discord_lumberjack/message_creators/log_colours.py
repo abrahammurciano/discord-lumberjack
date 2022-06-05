@@ -19,7 +19,7 @@ class LogColours:
     You can then access a colour value for any log level by using the brackets operator. If the log level is not in the mapping, the colour for the highest log level that is lower than the log level will be used.
 
     Args:
-            colours (Mapping[int, int], optional): A mapping of log levels to colours. Log levels which are not given will be taken from the closest provided log level less than it. Defaults to a sensible selection of colours.
+        colours (Mapping[int, int], optional): A mapping of log levels to colours. Log levels which are not given will be taken from the closest provided log level less than it. Defaults to a sensible selection of colours.
     """
 
     def __init__(self, colours: Mapping[int, int] = None) -> None:

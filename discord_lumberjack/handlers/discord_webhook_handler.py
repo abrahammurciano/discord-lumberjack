@@ -10,11 +10,11 @@ class DiscordWebhookHandler(DiscordHandler):
     The username and avatar fields will override those provided by the message creator if provided here.
 
     Args:
-            url (str): The URL to make the request to. This must be a webhook URL.
-            level (int, optional): The level at which to log. Defaults to logging.NOTSET.
-            message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
-            username (str, optional): The username to use when sending messages. Defaults to None.
-            avatar_url (str, optional): The avatar URL to use when sending messages. Defaults to None.
+        url (str): The URL to make the request to. This must be a webhook URL.
+        level (int, optional): The level at which to log. Defaults to logging.NOTSET.
+        message_creator (MessageCreator, optional): An instance of MessageCreator or one of its subclasses that will be used to create the message to send from each log record. Defaults to one that sends messages in monospace.
+        username (str, optional): The username to use when sending messages. Defaults to None.
+        avatar_url (str, optional): The avatar URL to use when sending messages. Defaults to None.
     """
 
     def __init__(

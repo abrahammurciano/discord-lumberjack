@@ -44,10 +44,10 @@ def empty_embed(n_fields: int = 0) -> Embed:
     """Create an empty embed with the specified number of empty fields.
 
     Args:
-            n_fields (int, optional): The number of empty fields to initialise the embed with. Defaults to 0.
+        n_fields (int, optional): The number of empty fields to initialise the embed with. Defaults to 0.
 
     Returns:
-            Embed: An empty embed.
+        Embed: An empty embed.
     """
     return Embed(
         author=EmbedAuthor(name="", url=None, icon_url=None, proxy_icon_url=None),
@@ -67,10 +67,10 @@ def embed_length(embed: Embed) -> int:
     """Calculates the total length of the size-limited fields of an embed.
 
     Args:
-            embed (Embed): The embed to calculate the length of.
+        embed (Embed): The embed to calculate the length of.
 
     Returns:
-            int: The total length of the size-limited fields of the embed.
+        int: The total length of the size-limited fields of the embed.
     """
     return sum(
         len(string)
@@ -90,9 +90,9 @@ class EmbedFieldSetter:
     """Sets a field of an embed as specified by the user, providing a mechanism for not overflowing the embeds.
 
     Args:
-            key_chain (Sequence[str | int]): A sequence of the keys (at least one) to index the embed with. For example if the value `v` should be set like this, `embed["fields"][2]["name"] = v`, then the `key_chain` would be `("fields", 2, "name")`.
-            get_value (Callable[[LogRecord], Any]): A function that gets a value to pass to `set_value` from a log record.
-            limit (int): The limit of the field this `EmbedFieldSetter` is setting.
+        key_chain (Sequence[str | int]): A sequence of the keys (at least one) to index the embed with. For example if the value `v` should be set like this, `embed["fields"][2]["name"] = v`, then the `key_chain` would be `("fields", 2, "name")`.
+        get_value (Callable[[LogRecord], Any]): A function that gets a value to pass to `set_value` from a log record.
+        limit (int): The limit of the field this `EmbedFieldSetter` is setting.
     """
 
     def __init__(
@@ -119,17 +119,17 @@ class EmbedFieldSetter:
         """[summary]
 
         Args:
-                embed (Embed): The embed to set the field in.
-                record (LogRecord): The log record containing the data to set.
-                remainder (str, optional): The text that should have been in the same field of the previous embed but couldn't be set due to length limitations. Defaults to None.
-                new_embed_creator (Callable[[LogRecord], Embed], optional): A function that generates a new embed and sets whatever fields will persist across all the embeds that a log record is split up into. Defaults to a function that returns an empty embed.
-                remaining_global_limit (Optional[int], optional): The number of remaining characters that can be added to limited fields of the embed before it is split up. Defaults to None.
+            embed (Embed): The embed to set the field in.
+            record (LogRecord): The log record containing the data to set.
+            remainder (str, optional): The text that should have been in the same field of the previous embed but couldn't be set due to length limitations. Defaults to None.
+            new_embed_creator (Callable[[LogRecord], Embed], optional): A function that generates a new embed and sets whatever fields will persist across all the embeds that a log record is split up into. Defaults to a function that returns an empty embed.
+            remaining_global_limit (Optional[int], optional): The number of remaining characters that can be added to limited fields of the embed before it is split up. Defaults to None.
 
         Yields:
-                Embed: This function yields any embeds which it creates.
+            Embed: This function yields any embeds which it creates.
 
         Raises:
-                KeyError: If the key chain is invalid.
+            KeyError: If the key chain is invalid.
         """
         full_value = remainder or self.__get_value(record)
         if full_value is None:

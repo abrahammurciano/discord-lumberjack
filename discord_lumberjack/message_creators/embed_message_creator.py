@@ -18,7 +18,7 @@ class EmbedMessageCreator(MessageCreator):
     The second exception is `get_new_embed`, which returns an embed prefilled with the fields that should be set on every embed that a `LogRecord` is split into.
 
     Args:
-            colours (Mapping[int, int]): A mapping of log levels to colours. If a log level doesn't have an index in this mapping, the colour of the closest level lower than it will be used. If not provided, sensible selection of colours will be used.
+        colours (Mapping[int, int]): A mapping of log levels to colours. If a log level doesn't have an index in this mapping, the colour of the closest level lower than it will be used. If not provided, sensible selection of colours will be used.
     """
 
     def __init__(
@@ -37,11 +37,11 @@ class EmbedMessageCreator(MessageCreator):
         This method ignores the `format_func` argument.
 
         Args:
-                record (LogRecord): The record to create messages for.
-                format_func (Callable[[LogRecord], str]): This argument is ignored.
+            record (LogRecord): The record to create messages for.
+            format_func (Callable[[LogRecord], str]): This argument is ignored.
 
         Returns:
-                Iterable[dict]: The messages to pass on to the handler.
+            Iterable[dict]: The messages to pass on to the handler.
         """
         first_embed = self.get_new_embed(record)
         embeds = [first_embed]
@@ -64,10 +64,10 @@ class EmbedMessageCreator(MessageCreator):
         This method assumes that each embed has a length of at most 6000 characters.
 
         Args:
-                embeds (Iterable[Embed]): The embeds to split.
+            embeds (Iterable[Embed]): The embeds to split.
 
         Yields:
-                List[Embed]: The embeds in chunks of 10.
+            List[Embed]: The embeds in chunks of 10.
         """
         limit = 6000
         chunk: List[Embed] = []
@@ -88,10 +88,10 @@ class EmbedMessageCreator(MessageCreator):
         This is obtained from the `colours` mapping passed to the constructor and from the log level. If you want to customise the colours you should probably do it by passing the colours you want to the constructor rather than by overriding this method. However if you want some more advanced custom behaviour, such as setting the colour based on the file that created the log record, feel free to override this method to do that.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                int: The colour to set the embed to.
+            int: The colour to set the embed to.
         """
         return self.__colours[record.levelno]
 
@@ -101,10 +101,10 @@ class EmbedMessageCreator(MessageCreator):
         You can override this method to return a custom thumbnail URL.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                str: The string to set the thumbnail URL to.
+            str: The string to set the thumbnail URL to.
         """
         return ""
 
@@ -114,10 +114,10 @@ class EmbedMessageCreator(MessageCreator):
         You can override this method to return a custom URL.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                str: The URL to set for the author.
+            str: The URL to set for the author.
         """
         return ""
 
@@ -127,10 +127,10 @@ class EmbedMessageCreator(MessageCreator):
         You can override this method to return a custom icon URL.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                str: The URL to set the author's icon to.
+            str: The URL to set the author's icon to.
         """
         return f"https://raw.githubusercontent.com/abrahammurciano/discord-lumberjack/main/images/{record.levelname.lower()}.png"
 
@@ -140,10 +140,10 @@ class EmbedMessageCreator(MessageCreator):
         You can override this method to return a custom name.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                str: The string to set the author's name to.
+            str: The string to set the author's name to.
         """
         return record.levelname
 
@@ -153,10 +153,10 @@ class EmbedMessageCreator(MessageCreator):
         You can override this method to return a custom title.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                str: The string to set the title to.
+            str: The string to set the title to.
         """
         return record.getMessage()
 
@@ -166,10 +166,10 @@ class EmbedMessageCreator(MessageCreator):
         You can override this method to return a custom description.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                str: The string to set the description to.
+            str: The string to set the description to.
         """
         return f"In {record.pathname} at line {record.lineno}"
 
@@ -179,10 +179,10 @@ class EmbedMessageCreator(MessageCreator):
         You can override this method to return a custom URL.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                str: The URL to set the embed's URL to.
+            str: The URL to set the embed's URL to.
         """
         return ""
 
@@ -192,10 +192,10 @@ class EmbedMessageCreator(MessageCreator):
         You can override this method to return a custom footer icon URL.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                str: The string to set the footer icon to.
+            str: The string to set the footer icon to.
         """
         return ""
 
@@ -205,10 +205,10 @@ class EmbedMessageCreator(MessageCreator):
         You can override this method to return a custom footer.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                str: The string to set the footer to.
+            str: The string to set the footer to.
         """
         return ""
 
@@ -218,10 +218,10 @@ class EmbedMessageCreator(MessageCreator):
         You probably won't need to override this method.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                str: The string to set the timestamp to.
+            str: The string to set the timestamp to.
         """
         tzinfo = dt.datetime.now().astimezone().tzinfo
         return dt.datetime.fromtimestamp(record.created, tz=tzinfo).isoformat()
@@ -232,10 +232,10 @@ class EmbedMessageCreator(MessageCreator):
         You can override this method to return a custom image URL.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                str: The string to set the image URL to.
+            str: The string to set the image URL to.
         """
         return ""
 
@@ -251,7 +251,7 @@ class EmbedMessageCreator(MessageCreator):
         Note, if a field name or value is left empty, it will be set to a dash "-" instead. If both the field name *and* value are left empty, the field will be removed. Therefore if you want to conditionally include a field, both functions in that field's tuple should conditionally return an empty string.
 
         Returns:
-                List[Tuple[Callable[[LogRecord], str], Callable[[LogRecord], str]]]: A list of tuples, each containing two functions similar to the other getters in this class. One for the field name and one for the field value.
+            List[Tuple[Callable[[LogRecord], str], Callable[[LogRecord], str]]]: A list of tuples, each containing two functions similar to the other getters in this class. One for the field name and one for the field value.
         """
 
         def exception_title(record: LogRecord) -> str:
@@ -277,10 +277,10 @@ class EmbedMessageCreator(MessageCreator):
         For example -- and this is the default behaviour -- you might want all embeds of a particular `LogRecord` to have the colour set (according to the log level most likely). Then in the new embed created by this function, you should set the colour before returning it.
 
         Args:
-                record (LogRecord): The `LogRecord` containing the data to use.
+            record (LogRecord): The `LogRecord` containing the data to use.
 
         Returns:
-                Embed: A new embed with possibly some properties preset.
+            Embed: A new embed with possibly some properties preset.
         """
         embed = empty_embed(len(self.get_field_definitions()))
         embed["color"] = self.get_colour(record)
@@ -318,7 +318,7 @@ class EmbedMessageCreator(MessageCreator):
         It removes fields with no name and no value. If sets empty name or values to "-" if it has either a name or value.
 
         Args:
-                embed (Embed): The embed whose fields to fix.
+            embed (Embed): The embed whose fields to fix.
         """
         embed["fields"] = [
             field for field in embed["fields"] if field["name"] or field["value"]
